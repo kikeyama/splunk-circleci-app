@@ -1,0 +1,13 @@
+[inputs/circleci%3A%2F%2Fkikeyama-api-token]
+version = 8.0.5
+modtime = 1594837261.437129000
+
+[props/circleci%3Ajob]
+version = 8.0.5
+modtime = 1594742711.287622000
+export = system
+
+[props/circleci%3Astep]
+version = 8.0.5
+modtime = 1594742731.421206000
+export = system
