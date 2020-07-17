@@ -177,7 +177,7 @@ class CircleCIScript(Script):
             collection_name = '_circleci_job_checkpoint_collection'
 
 
-            ## FOR ONE TIME TEST (COMMENT OUT THIS STEP AFTER TESTING)
+            ## DO NOT UNCOMMENT (COMMENT OUT THIS STEP AFTER TESTING)
             # Clear kv store collection
 #            service.kvstore.delete(collection_name)
             ##
@@ -206,7 +206,13 @@ class CircleCIScript(Script):
                 vcs_type = project.get('vcs_type', '')
                 reponame = project.get('reponame', '')
                 vcs_url = project.get('vcs_url', '')
+                status = project.get('status', '')
                 ew.log('DEBUG', 'Finish getting each element from project object')
+
+                # If no data in either of username, vcs_type, or reponame, then skip
+                if username == '' or vcs_type == '' or reponame == '':
+                    ew.log('DEBUG', 'skip username=%s vcs_type=%s reponame=%s' % (username, vcs_type, reponame))
+                    continue
 
                 ew.log('DEBUG', 'Start uuid of vcs_url=%s' % vcs_url)
                 # requests response is unicode at python 2
@@ -241,11 +247,18 @@ class CircleCIScript(Script):
                     ew.log('DEBUG', 'Start getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
 #                    build_checkpoint_data = json.loads(build_checkpoint)
                     checkpoint_build_num = build_checkpoint_data.get('build_num', 0)
+                    checkpoint_status = build_checkpoint_data.get('status', 'unknown')
                     ew.log('DEBUG', 'Finish getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
                 else:
                     # If no checkpoint stored, initialize with 0
                     checkpoint_build_num = 0
-                    build_checkpoint_data = {'_key': kvstore_key, 'vcs_url': vcs_url ,'build_num': checkpoint_build_num}
+                    checkpoint_status = 'unknown'
+                    build_checkpoint_data = {
+                        '_key': kvstore_key, 
+                        'vcs_url': vcs_url ,
+                        'build_num': checkpoint_build_num, 
+                        'status': checkpoint_status
+                    }
                     try:
                         ew.log('DEBUG', 'Start inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
                         kvstore_collection.data.insert(json.dumps(build_checkpoint_data))
@@ -253,10 +266,6 @@ class CircleCIScript(Script):
                     except:
                         ew.log('ERROR', 'Failed inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
                         continue
-
-                # If no data in either of username, vcs_type, or reponame, then skip
-                if username == '' or vcs_type == '' or reponame == '':
-                    continue
 
                 # Returns a build summary for each of the last 30 builds for a single git repo.
                 # /project/:vcs-type/:username/:project
@@ -276,29 +285,38 @@ class CircleCIScript(Script):
                 builds = json.loads(resp_builds.text)
                 ew.log('DEBUG', 'end GET request builds_endpoint=%s' % builds_endpoint)
 
+                # build_num and status in each build to be checked
                 build_nums = []
                 for build in builds:
-                    build_nums.append(build.get('build_num', 0))
+                    build_nums_data = {'build_num': build.get('build_num', 0), 'status': build.get('status', 'unknown')}
+                    build_nums.append(build_nums_data)
 
-                # Sort buil_num
-                # Caution!! This step must not be deleted for build_num in kv store control
-                build_nums.sort()
-                previous_build_num = checkpoint_build_num
+#                # Sort build_num
+#                # Caution!! This step must not be deleted for build_num in kv store control
+#                build_nums.sort()
+
+                # Sort build_num and status with ascending build_num
+                build_nums_sorted = sorted(build_nums, key=lambda i: i['build_num'])
+
+#                ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#                # Project break and Build break???
+#                previous_build_num = checkpoint_build_num
 
                 # GET circleci detail job data and write event to splunk for each build_num
-                for build_num in build_nums:
+                for build_num_status in build_nums_sorted:
 
 #                for build in builds:
 #                    build_num = build.get('build_num', 0)
 
-                    # If the build's build_num is smaller than checkpoint, skip the following process
-                    if build_num <= checkpoint_build_num:
+                    build_num = build_num_status.get('build_num', 0)
+                    status = build_num_status.get('status', 'unknown')
+
+                    # If the build's build_num is smaller than checkpoint's value 
+                    #    AND status matches checkpoint's value, 
+                    # skip the following process
+                    if build_num <= checkpoint_build_num and status == checkpoint_status:
                         ew.log('DEBUG', 'skip this build: %s/%s/%s build_num=%s ' \
                             % (vcs_type, username, reponame, build_num))
-                        if sys.version_info[0] == 2:
-                            del build_nums[:]
-                        elif sys.version_info[0] == 3:
-                            build_nums.clear()
                         continue
 
                     # stop_time None means unfinished build? maybe?
@@ -311,7 +329,7 @@ class CircleCIScript(Script):
                     event.sourceType = 'circleci:job'
 
                     # Set host in event data
-                    build_url = build.get('build_url')    # https://circleci.com/gh/...
+                    build_url = build.get('build_url', 'https://circleci.com/')    # https://circleci.com/gh/...
                     host_start_pos = build_url.find('//')+2
                     host = build_url[host_start_pos:build_url.find('/', host_start_pos)]
                     event.host = host
@@ -355,6 +373,11 @@ class CircleCIScript(Script):
                     job_event_data['username'] = job_detail.get('username')
                     job_event_data['owners'] = job_detail.get('owners')
                     job_event_data['author_name'] = job_detail.get('author_name')
+                    if job_event_data.get('user') is not None:
+                        job_event_data['avatar_url'] = job_detail.get('user').get('avatar_url')
+                        job_event_data['user_id'] = job_detail.get('user').get('id')
+                    else:
+                        job_event_data['avatar_url'] = ''
                     job_event_data['build_time_millis'] = job_detail.get('build_time_millis')
                     job_event_data['workflows'] = job_detail.get('workflows')
                     job_event_data['vcs'] = {}
@@ -382,19 +405,22 @@ class CircleCIScript(Script):
 
                     # Update checkpoint
                     try:
-                        if build_num > previous_build_num:
-                            ew.log('DEBUG', 'Current build_num=%s is greater than checkpoint_build_num=%s' \
-                                % (str(build_num), str(checkpoint_build_num)))
-                            ew.log('DEBUG', 'Start updating kv store: %s' % build_checkpoint_data)
+#                        # Only if build num is greater than previous num
+#                        #     OR status doesn't match checkpoint's status
+#                        if build_num > previous_build_num or job_detail.get('status') != checkpoint_status:
+                        ew.log('DEBUG', 'Current build_num=%s is greater than checkpoint_build_num=%s' \
+                            % (str(build_num), str(checkpoint_build_num)))
+                        ew.log('DEBUG', 'Start updating kv store: %s' % build_checkpoint_data)
 
-                            # Update kv store
-                            build_checkpoint_data['build_num'] = build_num
-                            build_checkpoint_json = json.dumps(build_checkpoint_data)
-                            kvstore_collection.data.update(kvstore_key, json.dumps(build_checkpoint_data))
+                        # Update kv store
+                        build_checkpoint_data['build_num'] = build_num
+                        build_checkpoint_data['status'] = job_detail.get('status', 'unknown')
+                        build_checkpoint_json = json.dumps(build_checkpoint_data)
+                        kvstore_collection.data.update(kvstore_key, build_checkpoint_json)
 
-                            # Update previous build_num
-                            previous_build_num = build_num
-                            ew.log('DEBUG', 'Success updating kv store: %s' % build_checkpoint_json)
+                        # Update previous build_num
+#                        previous_build_num = build_num
+                        ew.log('DEBUG', 'Success updating kv store: %s' % build_checkpoint_json)
                     except:
                         ew.log('ERROR', 'Failed updating kv store: %s' % build_checkpoint_json)
                         continue
@@ -448,8 +474,10 @@ class CircleCIScript(Script):
                 # Clear build_nums for next loop after finishing all build_num in the project
                 if sys.version_info[0] == 2:
                     del build_nums[:]
+                    del build_nums_sorted[:]
                 elif sys.version_info[0] == 3:
                     build_nums.clear()
+                    build_nums_sorted.clear()
 
 
 if __name__ == "__main__":
