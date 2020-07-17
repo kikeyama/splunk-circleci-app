@@ -61,12 +61,28 @@ class CircleCIScript(Script):
         api_token_argument.data_type = Argument.data_type_string
         api_token_argument.description = "CircleCI API Token"
         api_token_argument.required_on_create = True
+
+        interval_argument = Argument("interval")
+        interval_argument.title = "Interval"
+        interval_argument.data_type = Argument.data_type_string
+        interval_argument.description = "Interval to execute input script"
+        interval_argument.required_on_create = True
+
+        name_argument = Argument("name")
+        name_argument.title = "Name"
+        name_argument.data_type = Argument.data_type_string
+        name_argument.description = "Name of this input setting"
+        name_argument.required_on_create = True
+
         # If you are not using external validation, you would add something like:
         #
         # scheme.validation = "api_token==xxxxxxxxxxxxxxx"
         scheme.add_argument(api_token_argument)
+        scheme.add_argument(interval_argument)
+        scheme.add_argument(name_argument)
 
         return scheme
+
 
     def validate_input(self, validation_definition):
         """In this example we are using external validation to verify that the Github
@@ -84,15 +100,31 @@ class CircleCIScript(Script):
         """
         # Get the values of the parameters, and construct a URL for the Github API
         api_token = validation_definition.parameters["api_token"]
+        interval = validation_definition.parameters["interval"]
 
         # Examine if api_token matches appropriate format with regular expression
         # (0-9 or a-f) and 40 characters
-        regexmatch = re.match(r'^[0-9a-f]{40}$', api_token)
+        regexmatch_api_token = re.match(r'^[0-9a-f]{40}$', api_token)
 
         # re.match returning None means api_token doesn't match regex
         # https://docs.python.org/3/library/re.html#re.match
-        if regexmatch is None:
+        if regexmatch_api_token is None:
             raise ValueError("API Token format is invalid. Must be 40 characters with 0-9 or a-f.")
+
+        # Examine if interval is number format
+        # (0-9 or a-f) and 40 characters
+        regexmatch_interval = re.match(r'^[1-9][0-9]*$', interval)
+
+        if regexmatch_interval is None:
+            raise ValueError("Interval format is invalid. Must be non-negative integer.")
+        else:
+            try:
+                int_interval = int(interval)
+            except:
+                raise ValueError("Interval format is invalid. Must be non-negative integer.")
+            if int_interval < 60:
+                raise ValueError("Interval must be equal or greater than 60 (seconds).")
+
 
     def stream_events(self, inputs, ew):
         """This function handles all the action: splunk calls this modular input
