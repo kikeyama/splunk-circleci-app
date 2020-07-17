@@ -1,0 +1,210 @@
+<form>
+  <label>CircleCI Build Overview</label>
+  <description>Overview of build statistics</description>
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="multiselect" token="organization" searchWhenChanged="true">
+      <label>Organization</label>
+      <choice value="*">ALL</choice>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>username="</valuePrefix>
+      <valueSuffix>"</valueSuffix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>username</fieldForLabel>
+      <fieldForValue>username</fieldForValue>
+      <search>
+        <query>`circleci_build_sourcetype` 
+| stats count by username</query>
+        <earliest>0</earliest>
+        <latest></latest>
+      </search>
+      <default>*</default>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>Total Builds</title>
+      <single>
+        <search>
+          <query>`circleci_build_latest` 
+| search $organization$ 
+| stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="height">328</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="underLabel">Total Builds</option>
+        <option name="useColors">0</option>
+      </single>
+    </panel>
+    <panel>
+      <input type="dropdown" token="status">
+        <label>Status</label>
+        <choice value="*">ALL</choice>
+        <default>*</default>
+        <initialValue>*</initialValue>
+        <fieldForLabel>status</fieldForLabel>
+        <fieldForValue>status</fieldForValue>
+        <search>
+          <query>`circleci_build_sourcetype` 
+| stats count by status 
+| sort - by count</query>
+          <earliest>0</earliest>
+          <latest></latest>
+        </search>
+      </input>
+      <chart>
+        <title>Timechart by Organization</title>
+        <search>
+          <query>`circleci_build_latest` 
+| search $organization$ status=$status$ 
+| timechart count by username</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Count by Status</title>
+      <single>
+        <title>Success Builds</title>
+        <search>
+          <query>`circleci_build_latest` 
+| search $organization$ status=success 
+| stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="underLabel">Failed Builds</option>
+        <option name="useColors">0</option>
+      </single>
+      <single>
+        <title>Failed Builds</title>
+        <search>
+          <query>`circleci_build_latest` 
+| search $organization$ status=failed 
+| stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="underLabel">Failed Builds</option>
+        <option name="useColors">0</option>
+      </single>
+      <single>
+        <title>Running Builds</title>
+        <search>
+          <query>`circleci_build_latest` 
+| search $organization$ status=running 
+| stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="underLabel">Running Builds</option>
+        <option name="useColors">0</option>
+      </single>
+      <single>
+        <title>Canceled Builds</title>
+        <search>
+          <query>`circleci_build_latest` 
+| search $organization$ status=canceled 
+| stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="underLabel">Canceled Builds</option>
+        <option name="useColors">0</option>
+      </single>
+      <single>
+        <title>Fixed Builds</title>
+        <search>
+          <query>`circleci_build_latest` 
+| search $organization$ status=fixed 
+| stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="underLabel">Fixed Builds</option>
+        <option name="useColors">0</option>
+      </single>
+      <single>
+        <title>Not Run Builds</title>
+        <search>
+          <query>`circleci_build_latest` 
+| search $organization$ status=not_run 
+| stats count</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="underLabel">Not Run Builds</option>
+        <option name="useColors">0</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Top 10 Most Frequent Builds Projects</title>
+      <table>
+        <search>
+          <query>`circleci_build_latest` 
+| search $organization$ 
+| top username reponame
+| fields - percent</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">50</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>
