@@ -118,13 +118,13 @@ class CircleCIScript(Script):
             # /projects 
             projects_endpoint = 'https://circleci.com/api/v1.1/projects'
 
-            ew.log('INFO', 'start GET request projects_endpoint: %s' % projects_endpoint)
+            ew.log('DEBUG', 'start GET request projects_endpoint: %s' % projects_endpoint)
             params = {'circle-token': api_token}
 
             # HTTP Get Request
             resp_projects = requests.get(projects_endpoint, params=params)
             projects = json.loads(resp_projects.text)
-            ew.log('INFO', 'end GET request projects_endpoint')
+            ew.log('DEBUG', 'end GET request projects_endpoint')
 
             if resp_projects.status_code != 200:
                 ew.log('WARN', 'status code is not 200 at %s' % projects_endpoint)
@@ -153,36 +153,36 @@ class CircleCIScript(Script):
 
             if collection_name not in service.kvstore:
                 try:
-                    ew.log('INFO', 'Start creating kv store collection: %s' % collection_name)
+                    ew.log('DEBUG', 'Start creating kv store collection: %s' % collection_name)
                     service.kvstore.create(collection_name)
-                    ew.log('INFO', 'Success creating kv store collection: %s' % collection_name)
+                    ew.log('DEBUG', 'Success creating kv store collection: %s' % collection_name)
                 except:
                     ew.log('ERROR', 'Failed creating kv store collection: %s' % collection_name)
                     continue
 
             try:
-                ew.log('INFO', 'Start getting kv store collection: %s' % collection_name)
+                ew.log('DEBUG', 'Start getting kv store collection: %s' % collection_name)
                 kvstore_collection = service.kvstore[collection_name]
-                ew.log('INFO', 'Success getting kv store collection: %s' % collection_name)
+                ew.log('DEBUG', 'Success getting kv store collection: %s' % collection_name)
             except:
                 ew.log('ERROR', 'Failed getting kv store collection: %s' % collection_name)
                 continue
 
             for project in projects:
-                ew.log('INFO', 'Start getting each element from project object')
+                ew.log('DEBUG', 'Start getting each element from project object')
                 username = project.get('username', '')
                 vcs_type = project.get('vcs_type', '')
                 reponame = project.get('reponame', '')
                 vcs_url = project.get('vcs_url', '')
-                ew.log('INFO', 'Finish getting each element from project object')
+                ew.log('DEBUG', 'Finish getting each element from project object')
 
-                ew.log('INFO', 'Start uuid of vcs_url=%s' % vcs_url)
+                ew.log('DEBUG', 'Start uuid of vcs_url=%s' % vcs_url)
                 # requests response is unicode at python 2
                 if sys.version_info[0] == 2:
                     kvstore_key = str(uuid.uuid3(uuid.NAMESPACE_URL, vcs_url.encode('utf-8')))
                 elif sys.version_info[0] == 3:
                     kvstore_key = str(uuid.uuid3(uuid.NAMESPACE_URL, vcs_url))
-                ew.log('INFO', 'Finish uuid of vcs_url=%s' % vcs_url)
+                ew.log('DEBUG', 'Finish uuid of vcs_url=%s' % vcs_url)
 
                 # Get checkpoint data from kv store
                 build_checkpoint_data = None
@@ -191,7 +191,7 @@ class CircleCIScript(Script):
                     build_checkpoint_data = kvstore_collection.data.query_by_id(kvstore_key)
                     ew.log('DEBUG', 'Finish query_by_id kv store with key=%s' % kvstore_key)
                 except HTTPError as e:
-                    ew.log('INFO', e)
+                    ew.log('WARN', e)
                     if '404 Not Found' not in str(e):
                         # Skip the following process unless "HTTP 404 Not Found"
                         continue
@@ -206,18 +206,18 @@ class CircleCIScript(Script):
 
                 if build_checkpoint_data is not None:
                     # If checkpoint is stored, load build_num
-                    ew.log('INFO', 'Start getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
+                    ew.log('DEBUG', 'Start getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
 #                    build_checkpoint_data = json.loads(build_checkpoint)
                     checkpoint_build_num = build_checkpoint_data.get('build_num', 0)
-                    ew.log('INFO', 'Finish getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
+                    ew.log('DEBUG', 'Finish getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
                 else:
                     # If no checkpoint stored, initialize with 0
                     checkpoint_build_num = 0
                     build_checkpoint_data = {'_key': kvstore_key, 'vcs_url': vcs_url ,'build_num': checkpoint_build_num}
                     try:
-                        ew.log('INFO', 'Start inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+                        ew.log('DEBUG', 'Start inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
                         kvstore_collection.data.insert(json.dumps(build_checkpoint_data))
-                        ew.log('INFO', 'Success inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+                        ew.log('DEBUG', 'Success inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
                     except:
                         ew.log('ERROR', 'Failed inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
                         continue
@@ -229,7 +229,7 @@ class CircleCIScript(Script):
                 # Returns a build summary for each of the last 30 builds for a single git repo.
                 # /project/:vcs-type/:username/:project
                 builds_endpoint = 'https://circleci.com/api/v1.1/project/%s/%s/%s' % (vcs_type, username, reponame)
-                ew.log('INFO', 'start GET request builds_endpoint: %s' % builds_endpoint)
+                ew.log('DEBUG', 'start GET request builds_endpoint=%s' % builds_endpoint)
 
                 # HTTP Get Request
                 resp_builds = requests.get(builds_endpoint, params=params)
@@ -238,9 +238,11 @@ class CircleCIScript(Script):
                 if resp_builds.status_code != 200:
                     ew.log('WARN', 'status code is not 200 at %s' % builds_endpoint)
                     continue
+                else:
+                    ew.log('INFO', 'Success builds_endpoint=%s' % builds_endpoint)
 
                 builds = json.loads(resp_builds.text)
-                ew.log('INFO', 'end GET request builds_endpoint=%s' % builds_endpoint)
+                ew.log('DEBUG', 'end GET request builds_endpoint=%s' % builds_endpoint)
 
                 build_nums = []
                 for build in builds:
@@ -259,7 +261,7 @@ class CircleCIScript(Script):
 
                     # If the build's build_num is smaller than checkpoint, skip the following process
                     if build_num <= checkpoint_build_num:
-                        ew.log('INFO', 'skip this build: %s/%s/%s build_num=%s ' \
+                        ew.log('DEBUG', 'skip this build: %s/%s/%s build_num=%s ' \
                             % (vcs_type, username, reponame, build_num))
                         if sys.version_info[0] == 2:
                             del build_nums[:]
@@ -269,7 +271,7 @@ class CircleCIScript(Script):
 
                     # stop_time None means unfinished build? maybe?
                     if build.get('stop_time') is None:
-                        ew.log('INFO', 'skip this build: %s/%s/%s stop_time is None ' \
+                        ew.log('DEBUG', 'skip this build: %s/%s/%s stop_time is None ' \
                             % (vcs_type, username, reponame))
                         continue
 
@@ -295,9 +297,11 @@ class CircleCIScript(Script):
                     if resp_job_detail.status_code != 200:
                         ew.log('WARN', 'status code is not 200 at %s' % job_detail_endpoint)
                         continue
+                    else:
+                        ew.log('INFO', 'Success job_detail_endpoint=%s' % job_detail_endpoint)
 
                     job_detail = json.loads(resp_job_detail.text)
-                    ew.log('INFO', 'end GET request job_detail_endpoint=%s' % job_detail_endpoint)
+                    ew.log('DEBUG', 'end GET request job_detail_endpoint=%s' % job_detail_endpoint)
 
 
                     # Create job event data
@@ -336,20 +340,20 @@ class CircleCIScript(Script):
                     # Write event data to Splunk
                     try:
                         ew.write_event(event)
-                        ew.log('INFO', 'Successfully write circleci job event: username=%s reponame=%s build_num=%s' \
+                        ew.log('DEBUG', 'Successfully write circleci job event: username=%s reponame=%s build_num=%s' \
                             % (job_detail.get('username'), job_detail.get('reponame'), job_detail.get('build_num')))
 
                     except:
-                        ew.log('ERROR', 'Failed to write circleci job event: username=%s reponame=%s build_num=%s' \
+                        ew.log('DEBUG', 'Failed to write circleci job event: username=%s reponame=%s build_num=%s' \
                             % (job_detail.get('username'), job_detail.get('reponame'), job_detail.get('build_num')))
                         continue
 
                     # Update checkpoint
                     try:
                         if build_num > previous_build_num:
-                            ew.log('INFO', 'Current build_num=%s is greater than checkpoint_build_num=%s' \
+                            ew.log('DEBUG', 'Current build_num=%s is greater than checkpoint_build_num=%s' \
                                 % (str(build_num), str(checkpoint_build_num)))
-                            ew.log('INFO', 'Start updating kv store: %s' % build_checkpoint_data)
+                            ew.log('DEBUG', 'Start updating kv store: %s' % build_checkpoint_data)
 
                             # Update kv store
                             build_checkpoint_data['build_num'] = build_num
@@ -358,7 +362,7 @@ class CircleCIScript(Script):
 
                             # Update previous build_num
                             previous_build_num = build_num
-                            ew.log('INFO', 'Success updating kv store: %s' % build_checkpoint_json)
+                            ew.log('DEBUG', 'Success updating kv store: %s' % build_checkpoint_json)
                     except:
                         ew.log('ERROR', 'Failed updating kv store: %s' % build_checkpoint_json)
                         continue
@@ -368,7 +372,7 @@ class CircleCIScript(Script):
 
 
                     # Write steps data in each job to splunk
-                    ew.log('INFO', 'Start processing build steps')
+                    ew.log('DEBUG', 'Start processing steps data collection')
                     for step in job_detail.get('steps'):
                         # Set sourcetype in event data
                         event.sourceType = 'circleci:step'
@@ -392,15 +396,17 @@ class CircleCIScript(Script):
                             # Write event data to Splunk
                             try:
                                 ew.write_event(event)
-                                ew.log('INFO', 'Successfully write circleci step event: username=%s ' \
+                                ew.log('DEBUG', 'Successfully write circleci step event: username=%s ' \
                                     'reponame=%s build_num=%s step_name=%s' \
                                     % (job_detail.get('username'), job_detail.get('reponame'), \
                                         job_detail.get('build_num'), action.get('name')))
                             except:
-                                ew.log('ERROR', 'Failed to write circleci step event: username=%s ' \
+                                ew.log('DEBUG', 'Failed to write circleci step event: username=%s ' \
                                     'reponame=%s build_num=%s step_name=%s' \
                                     % (job_detail.get('username'), job_detail.get('reponame'), \
                                         job_detail.get('build_num'), action.get('name')))
+
+                            ew.log('INFO', 'End step="%s"' % action.get('name', 'Unknown'))
 
 
                     ew.log('INFO', 'Finish processing job event: username=%s reponame=%s build_num=%s' \
