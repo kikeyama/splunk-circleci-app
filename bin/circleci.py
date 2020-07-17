@@ -62,24 +62,24 @@ class CircleCIScript(Script):
         api_token_argument.description = "CircleCI API Token"
         api_token_argument.required_on_create = True
 
-        interval_argument = Argument("interval")
-        interval_argument.title = "Interval"
-        interval_argument.data_type = Argument.data_type_string
-        interval_argument.description = "Interval to execute input script"
-        interval_argument.required_on_create = True
-
-        name_argument = Argument("name")
-        name_argument.title = "Name"
-        name_argument.data_type = Argument.data_type_string
-        name_argument.description = "Name of this input setting"
-        name_argument.required_on_create = True
+#        interval_argument = Argument("interval")
+#        interval_argument.title = "Interval"
+#        interval_argument.data_type = Argument.data_type_string
+#        interval_argument.description = "Interval to execute input script"
+#        interval_argument.required_on_create = True
+#
+#        name_argument = Argument("name")
+#        name_argument.title = "Name"
+#        name_argument.data_type = Argument.data_type_string
+#        name_argument.description = "Name of this input setting"
+#        name_argument.required_on_create = True
 
         # If you are not using external validation, you would add something like:
         #
         # scheme.validation = "api_token==xxxxxxxxxxxxxxx"
         scheme.add_argument(api_token_argument)
-        scheme.add_argument(interval_argument)
-        scheme.add_argument(name_argument)
+#        scheme.add_argument(interval_argument)
+#        scheme.add_argument(name_argument)
 
         return scheme
 
@@ -100,7 +100,7 @@ class CircleCIScript(Script):
         """
         # Get the values of the parameters, and construct a URL for the Github API
         api_token = validation_definition.parameters["api_token"]
-        interval = validation_definition.parameters["interval"]
+#        interval = validation_definition.parameters["interval"]
 
         # Examine if api_token matches appropriate format with regular expression
         # (0-9 or a-f) and 40 characters
@@ -111,19 +111,19 @@ class CircleCIScript(Script):
         if regexmatch_api_token is None:
             raise ValueError("API Token format is invalid. Must be 40 characters with 0-9 or a-f.")
 
-        # Examine if interval is number format
-        # (0-9 or a-f) and 40 characters
-        regexmatch_interval = re.match(r'^[1-9][0-9]*$', interval)
-
-        if regexmatch_interval is None:
-            raise ValueError("Interval format is invalid. Must be non-negative integer.")
-        else:
-            try:
-                int_interval = int(interval)
-            except:
-                raise ValueError("Interval format is invalid. Must be non-negative integer.")
-            if int_interval < 60:
-                raise ValueError("Interval must be equal or greater than 60 (seconds).")
+#        # Examine if interval is number format
+#        # (0-9 or a-f) and 40 characters
+#        regexmatch_interval = re.match(r'^[1-9][0-9]*$', interval)
+#
+#        if regexmatch_interval is None:
+#            raise ValueError("Interval format is invalid. Must be non-negative integer.")
+#        else:
+#            try:
+#                int_interval = int(interval)
+#            except:
+#                raise ValueError("Interval format is invalid. Must be non-negative integer.")
+#            if int_interval < 60:
+#                raise ValueError("Interval must be equal or greater than 60 (seconds).")
 
 
     def stream_events(self, inputs, ew):
@@ -182,7 +182,7 @@ class CircleCIScript(Script):
 #            service.kvstore.delete(collection_name)
             ##
 
-
+            # KV Store Collection
             if collection_name not in service.kvstore:
                 try:
                     ew.log('DEBUG', 'Start creating kv store collection: %s' % collection_name)
@@ -205,8 +205,6 @@ class CircleCIScript(Script):
                 username = project.get('username', '')
                 vcs_type = project.get('vcs_type', '')
                 reponame = project.get('reponame', '')
-                vcs_url = project.get('vcs_url', '')
-                status = project.get('status', '')
                 ew.log('DEBUG', 'Finish getting each element from project object')
 
                 # If no data in either of username, vcs_type, or reponame, then skip
@@ -214,58 +212,82 @@ class CircleCIScript(Script):
                     ew.log('DEBUG', 'skip username=%s vcs_type=%s reponame=%s' % (username, vcs_type, reponame))
                     continue
 
-                ew.log('DEBUG', 'Start uuid of vcs_url=%s' % vcs_url)
-                # requests response is unicode at python 2
-                if sys.version_info[0] == 2:
-                    kvstore_key = str(uuid.uuid3(uuid.NAMESPACE_URL, vcs_url.encode('utf-8')))
-                elif sys.version_info[0] == 3:
-                    kvstore_key = str(uuid.uuid3(uuid.NAMESPACE_URL, vcs_url))
-                ew.log('DEBUG', 'Finish uuid of vcs_url=%s' % vcs_url)
+#                ew.log('DEBUG', 'Start uuid of vcs_url=%s' % vcs_url)
+#                # requests response is unicode at python 2
+#                if sys.version_info[0] == 2:
+#                    kvstore_key = str(uuid.uuid3(uuid.NAMESPACE_URL, vcs_url.encode('utf-8')))
+#                elif sys.version_info[0] == 3:
+#                    kvstore_key = str(uuid.uuid3(uuid.NAMESPACE_URL, vcs_url))
+#                ew.log('DEBUG', 'Finish uuid of vcs_url=%s' % vcs_url)
 
-                # Get checkpoint data from kv store
-                build_checkpoint_data = None
-                try:
-                    ew.log('DEBUG', 'Start query_by_id kv store with key=%s' % kvstore_key)
-                    build_checkpoint_data = kvstore_collection.data.query_by_id(kvstore_key)
-                    ew.log('DEBUG', 'Finish query_by_id kv store with key=%s' % kvstore_key)
-                except HTTPError as e:
-                    ew.log('WARN', e)
-                    if '404 Not Found' not in str(e):
-                        # Skip the following process unless "HTTP 404 Not Found"
-                        continue
-                except Exception as e:
-                    ew.log('ERROR', 'Unknown error: %s' % e)
-                    continue
+#                # Get checkpoint data from kv store
+#                build_checkpoint_data = None
+#                try:
+#                    ew.log('DEBUG', 'Start query_by_id kv store with key=%s' % kvstore_key)
+#                    build_checkpoint_data = kvstore_collection.data.query_by_id(kvstore_key)
+#                    ew.log('DEBUG', 'Finish query_by_id kv store with key=%s' % kvstore_key)
+#
+#                    ew.log('DEBUG', 'Start getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
+#                    checkpoint_build_num = build_checkpoint_data.get('build_num', 0)
+#                    checkpoint_status = build_checkpoint_data.get('status', 'unknown')
+#                    ew.log('DEBUG', 'Finish getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
+#
+#                except HTTPError as e:
+#                    ew.log('WARN', e)
+#                    if '404 Not Found' not in str(e):
+#                        # Skip the following process unless "HTTP 404 Not Found"
+#                        continue
+#
+#                    # If 404 not fount, initialize and insert
+#                    checkpoint_build_num = 0
+#                    checkpoint_status = 'unknown'
+#                    build_checkpoint_data = {
+#                        '_key': kvstore_key, 
+#                        'vcs_url': vcs_url ,
+#                        'build_num': checkpoint_build_num, 
+#                        'status': checkpoint_status
+#                    }
+#                    try:
+#                        ew.log('DEBUG', 'Start inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+#                        kvstore_collection.data.insert(json.dumps(build_checkpoint_data))
+#                        ew.log('DEBUG', 'Success inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+#                    except:
+#                        ew.log('ERROR', 'Failed inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+#                        continue
+#
+#                except Exception as e:
+#                    ew.log('ERROR', 'Unknown error: %s' % e)
+#                    continue
 #                except Exception as e:
 #                    ew.log('INFO', 'error at query_by_id: %s' % e)
 #                    if '404 Not Found' not in e:
 #                        # Skip the following process unless "HTTP 404 Not Found"
 #                        continue
 
-                if build_checkpoint_data is not None:
-                    # If checkpoint is stored, load build_num
-                    ew.log('DEBUG', 'Start getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
-#                    build_checkpoint_data = json.loads(build_checkpoint)
-                    checkpoint_build_num = build_checkpoint_data.get('build_num', 0)
-                    checkpoint_status = build_checkpoint_data.get('status', 'unknown')
-                    ew.log('DEBUG', 'Finish getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
-                else:
-                    # If no checkpoint stored, initialize with 0
-                    checkpoint_build_num = 0
-                    checkpoint_status = 'unknown'
-                    build_checkpoint_data = {
-                        '_key': kvstore_key, 
-                        'vcs_url': vcs_url ,
-                        'build_num': checkpoint_build_num, 
-                        'status': checkpoint_status
-                    }
-                    try:
-                        ew.log('DEBUG', 'Start inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
-                        kvstore_collection.data.insert(json.dumps(build_checkpoint_data))
-                        ew.log('DEBUG', 'Success inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
-                    except:
-                        ew.log('ERROR', 'Failed inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
-                        continue
+#                if build_checkpoint_data is not None:
+#                    # If checkpoint is stored, load build_num
+#                    ew.log('DEBUG', 'Start getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
+##                    build_checkpoint_data = json.loads(build_checkpoint)
+#                    checkpoint_build_num = build_checkpoint_data.get('build_num', 0)
+#                    checkpoint_status = build_checkpoint_data.get('status', 'unknown')
+#                    ew.log('DEBUG', 'Finish getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
+#                else:
+#                    # If no checkpoint stored, initialize with 0
+#                    checkpoint_build_num = 0
+#                    checkpoint_status = 'unknown'
+#                    build_checkpoint_data = {
+#                        '_key': kvstore_key, 
+#                        'vcs_url': vcs_url ,
+#                        'build_num': checkpoint_build_num, 
+#                        'status': checkpoint_status
+#                    }
+#                    try:
+#                        ew.log('DEBUG', 'Start inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+#                        kvstore_collection.data.insert(json.dumps(build_checkpoint_data))
+#                        ew.log('DEBUG', 'Success inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+#                    except:
+#                        ew.log('ERROR', 'Failed inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+#                        continue
 
                 # Returns a build summary for each of the last 30 builds for a single git repo.
                 # /project/:vcs-type/:username/:project
@@ -285,36 +307,101 @@ class CircleCIScript(Script):
                 builds = json.loads(resp_builds.text)
                 ew.log('DEBUG', 'end GET request builds_endpoint=%s' % builds_endpoint)
 
-                # build_num and status in each build to be checked
-                build_nums = []
-                for build in builds:
-                    build_nums_data = {'build_num': build.get('build_num', 0), 'status': build.get('status', 'unknown')}
-                    build_nums.append(build_nums_data)
-
-#                # Sort build_num
-#                # Caution!! This step must not be deleted for build_num in kv store control
-#                build_nums.sort()
-
-                # Sort build_num and status with ascending build_num
-                build_nums_sorted = sorted(build_nums, key=lambda i: i['build_num'])
-
-#                ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#                # Project break and Build break???
-#                previous_build_num = checkpoint_build_num
-
-                # GET circleci detail job data and write event to splunk for each build_num
-                for build_num_status in build_nums_sorted:
-
+#                # build_num and status in each build to be checked
+#                build_nums = []
 #                for build in builds:
-#                    build_num = build.get('build_num', 0)
+#                    build_nums_data = {'build_num': build.get('build_num', 0), 'status': build.get('status', 'unknown')}
+#                    build_nums.append(build_nums_data)
+#
+##                # Sort build_num
+##                # Caution!! This step must not be deleted for build_num in kv store control
+##                build_nums.sort()
+#
+#                # Sort build_num and status with ascending build_num
+#                build_nums_sorted = sorted(build_nums, key=lambda i: i['build_num'])
+#
+##                ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+##                # Project break and Build break???
+##                previous_build_num = checkpoint_build_num
+#
+#                # GET circleci detail job data and write event to splunk for each build_num
+#                for build_num_status in build_nums_sorted:
 
-                    build_num = build_num_status.get('build_num', 0)
-                    status = build_num_status.get('status', 'unknown')
+                for build in builds:
+                    build_url = build.get('build_url')
+                    build_num = build.get('build_num', 0)
+                    status = build.get('status', 'unknown')
 
-                    # If the build's build_num is smaller than checkpoint's value 
-                    #    AND status matches checkpoint's value, 
-                    # skip the following process
-                    if build_num <= checkpoint_build_num and status == checkpoint_status:
+#                    build_num = build_num_status.get('build_num', 0)
+#                    status = build_num_status.get('status', 'unknown')
+
+                    # If project build_url
+                    if build_url is None:
+                        ew.log('DEBUG', 'build_url is None build_num=%s status=%s' \
+                            % (build_num, status))
+                        continue
+
+#                    # If the build's build_num is smaller than checkpoint's value 
+#                    #    AND status matches checkpoint's value, 
+#                    # skip the following process
+#                    if build_num <= checkpoint_build_num and status == checkpoint_status:
+
+                    # Checkpoint
+                    # create kv store key from build_url
+                    ew.log('DEBUG', 'Start uuid of build_url=%s' % build_url)
+                    # requests response is unicode at python 2
+                    if sys.version_info[0] == 2:
+                        kvstore_key = str(uuid.uuid3(uuid.NAMESPACE_URL, build_url.encode('utf-8')))
+                    elif sys.version_info[0] == 3:
+                        kvstore_key = str(uuid.uuid3(uuid.NAMESPACE_URL, build_url))
+                    ew.log('DEBUG', 'Finish uuid of build_url=%s' % build_url)
+
+
+                    # KV Store Collection Data
+                    build_checkpoint_data = None
+                    # Get data by id
+                    try:
+                        ew.log('DEBUG', 'Start query_by_id kv store with key=%s' % kvstore_key)
+                        build_checkpoint_data = kvstore_collection.data.query_by_id(kvstore_key)
+                        ew.log('DEBUG', 'Finish query_by_id kv store with key=%s' % kvstore_key)
+
+                        ew.log('DEBUG', 'Start getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
+                        checkpoint_build_num = build_checkpoint_data.get('build_num', 0)
+                        checkpoint_status = build_checkpoint_data.get('status', 'unknown')
+                        ew.log('DEBUG', 'Finish getting build_checkpoint_data=%s' % json.dumps(build_checkpoint_data))
+
+                    # Get Error
+                    except HTTPError as e:
+                        ew.log('WARN', e)
+                        if '404 Not Found' not in str(e):
+                            ew.log('DEBUG', 'HTTPError in getting checkpoint: %s' % e)
+                            # Skip the following process unless "HTTP 404 Not Found"
+                            continue
+
+                        # If 404 not fount, create
+                        checkpoint_build_num = 0
+                        checkpoint_status = 'unknown'
+                        build_checkpoint_data = {
+                            '_key': kvstore_key, 
+                            'build_url': build_url ,
+                            'build_num': checkpoint_build_num, 
+                            'status': checkpoint_status
+                        }
+                        # Insert new data
+                        try:
+                            ew.log('DEBUG', 'Start inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+                            kvstore_collection.data.insert(json.dumps(build_checkpoint_data))
+                            ew.log('DEBUG', 'Success inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+                        except:
+                            ew.log('ERROR', 'Failed inserting new kv store data build_checkpoint_data=%s' % build_checkpoint_data)
+                            continue
+
+                    except Exception as e:
+                        ew.log('ERROR', 'Unknown error: %s' % e)
+                        continue
+
+                    # If status matches checkpoint's value, skip the following process
+                    if status == checkpoint_status:
                         ew.log('DEBUG', 'skip this build: %s/%s/%s build_num=%s ' \
                             % (vcs_type, username, reponame, build_num))
                         continue
@@ -327,6 +414,9 @@ class CircleCIScript(Script):
 
                     # Set sourcetype in event data
                     event.sourceType = 'circleci:job'
+
+                    # Set current time to set job_time
+                    now = datetime.datetime.now()
 
                     # Set host in event data
                     build_url = build.get('build_url', 'https://circleci.com/')    # https://circleci.com/gh/...
@@ -356,7 +446,6 @@ class CircleCIScript(Script):
 
                     # Create job event data
                     job_event_data = {}
-                    now = datetime.datetime.now()
                     # add field job_time for _time
                     if job_detail.get('stop_time') is not None:
                         job_event_data['job_time'] = job_detail.get('stop_time')
@@ -425,7 +514,7 @@ class CircleCIScript(Script):
                         build_checkpoint_json = json.dumps(build_checkpoint_data)
                         kvstore_collection.data.update(kvstore_key, build_checkpoint_json)
 
-                        # Update previous build_num
+#                        # Update previous build_num
 #                        previous_build_num = build_num
                         ew.log('DEBUG', 'Success updating kv store: %s' % build_checkpoint_json)
                     except:
@@ -445,9 +534,17 @@ class CircleCIScript(Script):
                         # each step has actions in list
                         for action in step.get('actions'):
 
-                            ew.log('INFO', 'Start step="%s"' % action.get('name', 'Unknown'))
+                            ew.log('INFO', 'Start allocation_id=%s step=%s' \
+                                % (action.get('allocation_id'), str(action.get('step'))))
 
                             # Create step event data
+                            # add field step_time for _time
+                            if action.get('end_time') is not None:
+                                action['step_time'] = action.get('end_time')
+                            else:
+                                # set current time as %Y-%m-%dT%H:%M:%S.%3NZ
+                                action['step_time'] = now.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
+                            # add job key
                             if job_detail.get('workflows') is not None:
                                 action['job_id'] = job_detail.get('workflows').get('job_id')
                                 action['job_name'] = job_detail.get('workflows').get('job_name')
@@ -462,29 +559,34 @@ class CircleCIScript(Script):
                             try:
                                 ew.write_event(event)
                                 ew.log('DEBUG', 'Successfully write circleci step event: username=%s ' \
-                                    'reponame=%s build_num=%s step_name=%s' \
-                                    % (job_detail.get('username'), job_detail.get('reponame'), \
-                                        job_detail.get('build_num'), action.get('name')))
+                                    'reponame=%s build_num=%s allocation_id=%s step=%s' \
+                                    % (username, reponame, job_detail.get('build_num'), \
+                                        action.get('allocation_id'), str(action.get('step'))))
                             except:
                                 ew.log('DEBUG', 'Failed to write circleci step event: username=%s ' \
-                                    'reponame=%s build_num=%s step_name=%s' \
-                                    % (job_detail.get('username'), job_detail.get('reponame'), \
-                                        job_detail.get('build_num'), action.get('name')))
+                                    'reponame=%s build_num=%s allocation_id=%s step=%s' \
+                                    % (username, reponame, job_detail.get('build_num'), \
+                                        action.get('allocation_id'), str(action.get('step'))))
 
-                            ew.log('INFO', 'End step="%s"' % action.get('name', 'Unknown'))
+                            ew.log('INFO', 'End allocation_id=%s step=%s' \
+                                % (action.get('allocation_id'), str(action.get('step'))))
 
 
                     ew.log('INFO', 'Finish processing job event: username=%s reponame=%s build_num=%s' \
-                        % (job_detail.get('username'), job_detail.get('reponame'), job_detail.get('build_num')))
+                        % (username, reponame, str(build_num)))
 
+                ew.log('INFO', 'Finish processing project: username=%s reponame=%s' \
+                    % (username, reponame))
 
-                # Clear build_nums for next loop after finishing all build_num in the project
-                if sys.version_info[0] == 2:
-                    del build_nums[:]
-                    del build_nums_sorted[:]
-                elif sys.version_info[0] == 3:
-                    build_nums.clear()
-                    build_nums_sorted.clear()
+#                # Clear build_nums for next loop after finishing all build_num in the project
+#                if sys.version_info[0] == 2:
+#                    del build_nums[:]
+#                    del build_nums_sorted[:]
+#                elif sys.version_info[0] == 3:
+#                    build_nums.clear()
+#                    build_nums_sorted.clear()
+
+            ew.log('INFO', 'finish api token: %s' % api_token)
 
 
 if __name__ == "__main__":

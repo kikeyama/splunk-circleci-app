@@ -46,3 +46,10 @@ Field | Description | Default
 `name` | Input name you prefer (can be different from CircleCI API token name) | N/A
 `API Token` | API Token you copied at the previous step | N/A
 `interval` | Interval (seconds) this app collects CircleCI data | 600
+
+## Troubleshooting
+
+### Checkpoint endpoint
+
+`/servicesNS/nobody/system/storage/collections/data/_circleci_job_checkpoint_collection`  
+See [Splunk API Doc](https://docs.splunk.com/Documentation/Splunk/8.0.5/RESTREF/RESTkvstore)
