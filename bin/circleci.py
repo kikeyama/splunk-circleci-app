@@ -16,7 +16,7 @@
 
 from __future__ import absolute_import
 import sys, json
-import re, requests, uuid
+import re, requests, uuid, datetime
 
 from splunklib.modularinput import *
 from splunklib import six
@@ -320,10 +320,10 @@ class CircleCIScript(Script):
                         continue
 
                     # stop_time None means unfinished build? maybe?
-                    if build.get('stop_time') is None:
-                        ew.log('DEBUG', 'skip this build: %s/%s/%s stop_time is None ' \
-                            % (vcs_type, username, reponame))
-                        continue
+#                    if build.get('stop_time') is None:
+#                        ew.log('DEBUG', 'skip this build: %s/%s/%s stop_time is None ' \
+#                            % (vcs_type, username, reponame))
+#                        continue
 
                     # Set sourcetype in event data
                     event.sourceType = 'circleci:job'
@@ -356,6 +356,13 @@ class CircleCIScript(Script):
 
                     # Create job event data
                     job_event_data = {}
+                    now = datetime.datetime.now()
+                    # add field job_time for _time
+                    if job_detail.get('stop_time') is not None:
+                        job_event_data['job_time'] = job_detail.get('stop_time')
+                    else:
+                        # set current time as %Y-%m-%dT%H:%M:%S.%3NZ
+                        job_event_data['job_time'] = now.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
                     job_event_data['stop_time'] = job_detail.get('stop_time')
                     job_event_data['start_time'] = job_detail.get('start_time')
                     job_event_data['queued_time'] = job_detail.get('queued_at')
