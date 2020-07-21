@@ -1,6 +1,9 @@
-<form>
+<form script="table_row_expansion.js">
   <label>CircleCI Build Overview</label>
   <description>Overview of build statistics</description>
+  <init>
+    <set token="show_html">true</set>
+  </init>
   <fieldset submitButton="false">
     <input type="time" token="time">
       <label></label>
@@ -30,16 +33,38 @@
     </input>
   </fieldset>
   <row>
-    <panel>
+    <panel depends="$alwaysHideCSS$">
+      <html>
+        <style>
+          #total_builds{
+            width:40% !important;
+          }
+          #builds_by_organization{
+            width:60% !important;
+          }
+          #top_10_most_frequent_builds{
+            width:30% !important;
+          }
+          #build_chart_separator{
+            width:10% !important;
+          }
+          #build_timechart_by_status{
+            width:60% !important;
+          }
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel id="total_builds">
       <title>Total Builds</title>
       <single>
         <search>
-          <query>`circleci_build_latest` 
+          <query>`circleci_build_sourcetype` 
 | search $organization$ 
 | stats count</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
-          <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">none</option>
         <option name="height">328</option>
@@ -49,7 +74,7 @@
         <option name="useColors">0</option>
       </single>
     </panel>
-    <panel>
+    <panel id="builds_by_organization">
       <input type="dropdown" token="status">
         <label>Status</label>
         <choice value="*">ALL</choice>
@@ -66,7 +91,7 @@
         </search>
       </input>
       <chart>
-        <title>Timechart by Organization</title>
+        <title># Builds by Organization</title>
         <search>
           <query>`circleci_build_latest` 
 | search $organization$ status=$status$ 
@@ -91,7 +116,7 @@
     <panel>
       <title>Count by Status</title>
       <single>
-        <title>Success Builds</title>
+        <title>Success</title>
         <search>
           <query>`circleci_build_latest` 
 | search $organization$ status=success 
@@ -106,7 +131,7 @@
         <option name="useColors">0</option>
       </single>
       <single>
-        <title>Failed Builds</title>
+        <title>Failed</title>
         <search>
           <query>`circleci_build_latest` 
 | search $organization$ status=failed 
@@ -121,7 +146,7 @@
         <option name="useColors">0</option>
       </single>
       <single>
-        <title>Running Builds</title>
+        <title>Running</title>
         <search>
           <query>`circleci_build_latest` 
 | search $organization$ status=running 
@@ -136,7 +161,7 @@
         <option name="useColors">0</option>
       </single>
       <single>
-        <title>Canceled Builds</title>
+        <title>Canceled</title>
         <search>
           <query>`circleci_build_latest` 
 | search $organization$ status=canceled 
@@ -151,7 +176,7 @@
         <option name="useColors">0</option>
       </single>
       <single>
-        <title>Fixed Builds</title>
+        <title>Fixed</title>
         <search>
           <query>`circleci_build_latest` 
 | search $organization$ status=fixed 
@@ -166,7 +191,7 @@
         <option name="useColors">0</option>
       </single>
       <single>
-        <title>Not Run Builds</title>
+        <title>Not Run</title>
         <search>
           <query>`circleci_build_latest` 
 | search $organization$ status=not_run 
@@ -176,7 +201,6 @@
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">none</option>
-        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
         <option name="refresh.display">progressbar</option>
         <option name="underLabel">Not Run Builds</option>
         <option name="useColors">0</option>
@@ -184,27 +208,82 @@
     </panel>
   </row>
   <row>
-    <panel>
-      <title>Top 10 Most Frequent Builds Projects</title>
+    <panel id="recent_builds">
+      <title>Recent Builds</title>
       <table>
+        <search>
+          <query>`circleci_build_sourcetype` $organization$ 
+| stats latest(_time) as time latest(status) as status by username reponame build_num workflows.job_name 
+| sort - time 
+| head 10 
+| eval time = strftime(time, "%Y-%m-%d %H:%M:%S.%3N")</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="status">
+          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"canceled":#4F4F4F,"not_run":#7F7F7F}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel id="top_10_most_frequent_builds">
+      <title>Top 10 Most Frequent Builds Projects</title>
+      <table id="expand_with_events">
         <search>
           <query>`circleci_build_latest` 
 | search $organization$ 
-| top username reponame
+| top username reponame 
 | fields - percent</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
           <sampleRatio>1</sampleRatio>
         </search>
-        <option name="count">50</option>
+        <option name="count">10</option>
         <option name="dataOverlayMode">none</option>
-        <option name="drilldown">none</option>
+        <option name="drilldown">row</option>
         <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
+        <drilldown>
+          <condition>
+            <set token="username">$row.username$</set>
+            <set token="reponame">$row.reponame$</set>
+            <unset token="show_html"></unset>
+          </condition>
+        </drilldown>
       </table>
+    </panel>
+    <panel id="build_chart_separator">
+      <html/>
+    </panel>
+    <panel id="build_timechart_by_status" depends="$reponame$">
+      <title># Builds by Status at $username$/$reponame$</title>
+      <chart depends="$reponame$">
+        <search>
+          <query>`circleci_build_latest(*, $username$, $reponame$)` 
+| timechart count by status</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"running":0x0070C0,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
+        <option name="height">349</option>
+      </chart>
+      <html depends="$show_html$">
+        <div>&lt;-- Select username/repository from left table.</div>
+      </html>
     </panel>
   </row>
 </form>

@@ -1,5 +1,7 @@
 [circleci://<name>]
-*Streams CircleCI builds followed by user owning api_token
+*Streams CircleCI workflows, jobs, and steps
 
 api_token = <value>
+vcs = <value>
+org = <value>
 interval = <value>
