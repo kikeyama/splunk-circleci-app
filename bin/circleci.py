@@ -477,6 +477,15 @@ class CircleCIScript(Script):
                     # Attach pipeline data at workflow
                     workflow['trigger'] = pipeline['trigger']
                     workflow['vcs'] = pipeline['vcs']
+                    # Add username and reponame to comply with job data
+                    if sys.version_info[0] == 2:
+                        project_slug = project_slug.encode('utf-8')
+                    elif sys.version_info[0] == 3:
+                        project_slug = project_slug
+                    left_separator = project_slug.find('/')
+                    right_separator = project_slug.rfind('/')
+                    workflow['username'] = project_slug[left_separator+1:right_separator]
+                    workflow['reponame'] = project_slug[right_separator+1:]
 
                     # Set workflow sourcetype
                     event.sourceType = 'circleci:workflow'

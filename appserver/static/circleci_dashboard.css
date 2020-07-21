@@ -1,0 +1,10 @@
+.title_panel {
+	text-align: center;
+	margin: 40px;
+}
+
+.title_panel > div {
+	vertical-align: middle;
+	font-size: 500%;
+	font-weight: bold;
+}

@@ -32,14 +32,11 @@ require([
         render: function($container, rowData) {
             // rowData contains information about the row that is expanded.  We can see the cells, fields, and values
             // We will find the sourcetype cell to use its value
-            var usernameCell = _(rowData.cells).find(function (cell) {
-               return cell.field === 'username';
-            });
-            var reponameCell = _(rowData.cells).find(function (cell) {
-               return cell.field === 'reponame';
+            var projectCell = _(rowData.cells).find(function (cell) {
+               return cell.field === 'project_slug';
             });
             //update the search with the sourcetype that we are interested in
-            this._searchManager.set({ search: '`circleci_build_latest(*, ' + usernameCell.value + ', ' + reponameCell.value + ')` | timechart count'});
+            this._searchManager.set({ search: '`circleci_workflow_latest(' + projectCell.value + ')` | timechart count'});
             // $container is the jquery object where we can put out content.
             // In this case we will render our chart and add it to the $container
             $container.append(this._chartView.render().el);

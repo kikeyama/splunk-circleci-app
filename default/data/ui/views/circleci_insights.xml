@@ -1,0 +1,57 @@
+<dashboard script="table_data_bar.js" stylesheet="table_data_bar.css">
+  <label>CircleCI Insights</label>
+  <row>
+    <panel>
+      <title>Project with Most Frequent Pipelines</title>
+      <single>
+        <search>
+          <query>`circleci_workflow_latest` 
+| stats dc(pipeline_id) as pipelines by project_slug 
+| sort - pipelines 
+| head 1 
+| fields project_slug</query>
+          <earliest>0</earliest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0x53a051", "0x0877a6", "0xf8be34", "0xf1813f", "0xdc4e41"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Failed Projects</title>
+      <table id="failed_projects_table">
+        <search>
+          <query>`circleci_workflow_latest` 
+| chart count(eval(status="failed")) as fails count as total by project_slug 
+| eval fail_rate = fails / total *100 
+| sort - fail_rate</query>
+          <earliest>0</earliest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</dashboard>
