@@ -1,0 +1,9 @@
+td.image-embed-cell > img {
+	height: 40px;
+}
+#top_trigger_users td {
+	vertical-align: middle;
+}
+#top_trigger_users td:nth-child(1) {
+	font-size: large;
+}

@@ -137,8 +137,8 @@ class CircleCIScript(Script):
                 int_interval = int(interval)
             except:
                 raise ValueError("Interval format is invalid. Must be non-negative integer.")
-            if int_interval < 60:
-                raise ValueError("Interval must be equal or greater than 60 (seconds).")
+            if int_interval < 60 or 86400 < int_interval:
+                raise ValueError("Interval must be from 60 to 86400 (seconds).")
 
         # vcs must be github or bitbucket
         if vcs != 'github' and vcs != 'bitbucket':
@@ -150,24 +150,27 @@ class CircleCIScript(Script):
         i = 0
         r_list = list()
 
+        ew.log('DEBUG', 'Initial list request url=%s params=%s' % (url, json.dumps(params)))
         # HTTP Get Request
         r_dict = self.get_dict_api(url=url, api_token=api_token, params=params, ew=ew)
 
         params['page-token'] = r_dict.get('next_page_token')
         r_list.extend(r_dict.get('items'))
-
-        i += 1
+        ew.log('DEBUG', 'end Initial list request url=%s params=%s' % (url, json.dumps(params)))
 
         while params.get('page-token') is not None:
 
-            if limit is not None and i < limit:
+            ew.log('DEBUG', 'start get list loop url=%s i=%s limit=%s' % (url, str(i), str(limit)))
+            if limit is not None and limit < i:
                 break
 
+            ew.log('DEBUG', 'Repeated list request url=%s params=%s i=%s' % (url, json.dumps(params), str(i)))
             # HTTP Get Request
-            r_dict = self.get_dict_api(url=url, params=params)
+            r_dict = self.get_dict_api(url=url, api_token=api_token, params=params, ew=ew)
 
             params['page-token'] = r_dict.get('next_page_token')
             r_list.extend(r_dict.get('items'))
+            ew.log('DEBUG', 'end get list url=%s i=%s limit=%s list_count=%s' % (url, str(i), str(limit), str(len(r_list))))
 
             i += 1
 
@@ -182,6 +185,7 @@ class CircleCIScript(Script):
             'Accept': 'application/json'
         }
 
+        ew.log('DEBUG', 'start GET request url=%s params=%s' % (url, json.dumps(params)))
         # HTTP Get Request
         # params is not empty
         if bool(params):
@@ -194,10 +198,10 @@ class CircleCIScript(Script):
         if r.status_code != 200:
             ew.log('WARN', 'status code is not 200 at %s' % url)
         else:
-            ew.log('INFO', 'Success url=%s' % url)
+            ew.log('INFO', 'Success url=%s params=%s' % (url, json.dumps(params)))
 
         r_dict = json.loads(r.text)
-        ew.log('DEBUG', 'end GET request url=%s' % url)
+        ew.log('DEBUG', 'end GET request url=%s params=%s' % (url, json.dumps(params)))
 
         return r_dict
 
@@ -329,6 +333,7 @@ class CircleCIScript(Script):
         for input_name, input_item in six.iteritems(inputs.inputs):
             # Get fields from the InputDefinition object
             api_token = input_item["api_token"]
+            interval = int(input_item["interval"])
             vcs = input_item["vcs"]
             org = input_item["org"]
             ew.log('INFO', 'read circieci api_token=%s vcs=%s org=%s' % (api_token, vcs, org))
@@ -353,8 +358,12 @@ class CircleCIScript(Script):
 #                'Accept': 'application/json'
 #            }
 
+            # Set pipeline page limit to be determined based on interval
+            # Max: 100 pages
+            pipeline_limit = min(interval // 60, 100)
+
             # HTTP Get Request
-            pipelines = self.get_list_api(url=pipeline_endpoint, api_token=api_token, params=params, limit=5, ew=ew)
+            pipelines = self.get_list_api(url=pipeline_endpoint, api_token=api_token, params=params, limit=pipeline_limit, ew=ew)
 #            resp_pipelines = requests.get(pipeline_endpoint, params=params, headers=headers)
 #            pipelines = json.loads(resp_pipelines.text)
 #            ew.log('DEBUG', 'end GET request pipeline_endpoint: %s' % pipeline_endpoint)
@@ -381,30 +390,32 @@ class CircleCIScript(Script):
 
                 # If no data in either of username, vcs_type, or reponame, then skip
                 if pipeline_id is None or project_slug is None or pipeline_num is None:
-                    ew.log('DEBUG', 'skip id=%s project_slug=%s pipeline_num=%s' % (pipeline_id, project_slug, pipeline_num))
+                    ew.log('WARN', 'skip id=%s project_slug=%s pipeline_num=%s' % (pipeline_id, project_slug, pipeline_num))
                     continue
 
-                # Pipeline checkpoint
-                ew.log('INFO', 'Getting pipeline checkpoint')
-                pipeline_checkpoint_data = {
-                    '_key': pipeline_id,
-                    'number': pipeline_num,
-                    'project_slug': project_slug,
-                    'updated_at': 'Unknown'
-                }
-                pipeline_checkpoint_data = self.get_checkpoint(
-                    kvstore_collection=pipeline_kvstore_collection, 
-                    init_data=pipeline_checkpoint_data, 
-                    ew=ew)
+                ew.log('INFO', 'Start processing pipeline: project_slug=%s number=%s' % (project_slug, pipeline_num))
 
-                # Checkpoint definition
-                pipeline_checkpoint_updated_at = pipeline_checkpoint_data.get('updated_at')
-
-                # If updated_at matches checkpoint's value, skip the following process
-                if updated_at == pipeline_checkpoint_updated_at:
-                    ew.log('DEBUG', 'skip this pipeline: project_slug=%s pipeline_num=%s' \
-                        % (project_slug, str(pipeline_num)))
-                    continue
+#                # Pipeline checkpoint
+#                ew.log('INFO', 'Getting pipeline checkpoint')
+#                pipeline_checkpoint_data = {
+#                    '_key': pipeline_id,
+#                    'number': pipeline_num,
+#                    'project_slug': project_slug,
+#                    'updated_at': 'Unknown'
+#                }
+#                pipeline_checkpoint_data = self.get_checkpoint(
+#                    kvstore_collection=pipeline_kvstore_collection, 
+#                    init_data=pipeline_checkpoint_data, 
+#                    ew=ew)
+#
+#                # Checkpoint definition
+#                pipeline_checkpoint_updated_at = pipeline_checkpoint_data.get('updated_at')
+#
+#                # If updated_at matches checkpoint's value, skip the following process
+#                if updated_at == pipeline_checkpoint_updated_at:
+#                    ew.log('DEBUG', 'skip this pipeline: project_slug=%s pipeline_num=%s' \
+#                        % (project_slug, str(pipeline_num)))
+#                    continue
 
                 # Get pipeline workflows
                 # /api/v2/pipeline/{pipeline-id}/workflow
@@ -781,16 +792,16 @@ class CircleCIScript(Script):
                         checkpoint_data=workflow_checkpoint_data, 
                         ew=ew)
 
-                    ew.log('INFO', 'Finish processing workflow: id=%s name=%s' \
-                        % (workflow_id, workflow_name))
+                    ew.log('INFO', 'Finish processing workflow: project_slug=%s name=%s' \
+                        % (project_slug, workflow_name))
 
-                # Update pipeline checkpoint
-                pipeline_checkpoint_data['updated_at'] = updated_at
-                self.update_checkpoint(kvstore_collection=pipeline_kvstore_collection, 
-                    checkpoint_data=pipeline_checkpoint_data, 
-                    ew=ew)
+#                # Update pipeline checkpoint
+#                pipeline_checkpoint_data['updated_at'] = updated_at
+#                self.update_checkpoint(kvstore_collection=pipeline_kvstore_collection, 
+#                    checkpoint_data=pipeline_checkpoint_data, 
+#                    ew=ew)
 
-                ew.log('INFO', 'Finish processing pipeline: id=%s number=%s' % (pipeline_id, pipeline_num))
+                ew.log('INFO', 'Finish processing pipeline: project_slug=%s number=%s' % (project_slug, pipeline_num))
 
             ew.log('INFO', 'Finish processing input: api_token=%s vcs=%s org=%s' % (api_token, vcs, org))
 

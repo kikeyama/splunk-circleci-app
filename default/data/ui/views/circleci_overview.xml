@@ -67,7 +67,7 @@
       <title>Total Pipelines</title>
       <single>
         <search>
-          <query>`circleci_workflow_sourcetype` 
+          <query>`circleci_workflow_latest` 
 | search $organization$ 
 | stats dc(pipeline_id) as pipelines</query>
           <earliest>$time.earliest$</earliest>

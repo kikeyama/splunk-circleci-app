@@ -18,7 +18,7 @@ require([
             });
             this._inlineTableView = new TableView({
                 managerid: 'details-search-manager',
-                fields: 'build_num, time, workflows.job_name, build_time_seconds, status',
+                fields: 'build_num, time, workflows.job_name, build_time_millis, status',
                 drilldown: 'none'
             });
         },
@@ -38,7 +38,7 @@ require([
                return cell.field === 'pipeline_number';
             });
             //update the search with the sourcetype that we are interested in
-            this._searchManager.set({ search: '`circleci_build_from_workflow(' + projectCell.value + ', ' + pipelineCell.value + ')` | eval time = strftime(_time, "%Y-%m-%d %H:%M:%S.%3N"), build_time_seconds = tostring(build_time_millis, "commas")  | table build_num time workflows.job_name build_time_seconds status build_url'});
+            this._searchManager.set({ search: '`circleci_build_from_workflow(' + projectCell.value + ', ' + pipelineCell.value + ')` | eval time = strftime(_time, "%Y-%m-%d %H:%M:%S.%3N"), build_time_millis = tostring(build_time_millis, "commas")  | table build_num time workflows.job_name build_time_millis status build_url'});
             // $container is the jquery object where we can put out content.
             // In this case we will render our table and add it to the $container
             $container.append(this._inlineTableView.render().el);

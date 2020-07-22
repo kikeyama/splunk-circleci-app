@@ -1,8 +1,8 @@
-<dashboard script="table_data_bar.js" stylesheet="table_data_bar.css">
+<dashboard script="table_data_bar.js, table_image_embed.js, table_font_size.js" stylesheet="table_data_bar.css, table_image_embed.css">
   <label>CircleCI Insights</label>
   <row>
     <panel>
-      <title>Project with Most Frequent Pipelines</title>
+      <title>Most Frequently Triggered Project</title>
       <single>
         <search>
           <query>`circleci_workflow_latest` 
@@ -34,6 +34,49 @@
   </row>
   <row>
     <panel>
+      <title>Most Frequently Triggered Projects</title>
+      <table id="most_frequently_triggered">
+        <search>
+          <query>`circleci_workflow_latest` 
+| stats dc(pipeline_id) as triggered_pipeline_count by project_slug 
+| sort - triggered_pipeline_count</query>
+          <earliest>0</earliest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Status Statistics by Project</title>
+      <table>
+        <search>
+          <query>`circleci_workflow_latest` 
+| chart count as total count(eval(status="success")) as success count(eval(status="failed")) as failed count(eval(status="not_run")) as not_run count(eval(status="canceled")) as canceled sparkline by project_slug</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
       <title>Failed Projects</title>
       <table id="failed_projects_table">
         <search>
@@ -48,6 +91,64 @@
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">none</option>
         <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Top Triggering User at Each Project</title>
+      <table id="top_trigger_users">
+        <search>
+          <query>`circleci_workflow_latest` 
+| stats count by project_slug trigger.actor.avatar_url trigger.actor.login 
+| rename trigger.actor.avatar_url as avatar trigger.actor.login as user 
+| sort project_slug - count 
+| streamstats count as stream_count by project_slug 
+| eventstats sum(count) as total by project_slug 
+| search stream_count=1 
+| eval percent = round(count / total * 100, 0)
+| fields - stream_count - total</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="number" field="percent">
+          <option name="precision">0</option>
+          <option name="unit">%</option>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Duration statistics per build job</title>
+      <table>
+        <search>
+          <query>`circleci_build_from_workflow` 
+| search build_time_millis!=null 
+| stats max(build_time_millis) as max_millis p95(build_time_millis) as p95_millis median(build_time_millis) as median_millis min(build_time_millis) as min_millis count by project_slug workflows.job_name 
+| foreach *_millis 
+    [eval &lt;&lt;FIELD&gt;&gt; = tostring(round(&lt;&lt;FIELD&gt;&gt;,0), "commas")]</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
