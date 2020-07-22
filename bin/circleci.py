@@ -475,16 +475,20 @@ class CircleCIScript(Script):
 
                     # If status matches checkpoint's value, skip the following process
                     if workflow_status == workflow_checkpoint_status:
-                        ew.log('DEBUG', 'skip this workflow: project_slug=%s workflow_name=%s' \
-                            % (project_slug, workflow_name))
+                        ew.log('DEBUG', 'skip this workflow: project_slug=%s workflow_name=%s status=%s checkpoint_status=%s' \
+                            % (project_slug, workflow_name, workflow_status, workflow_checkpoint_status))
                         continue
+
+                    ew.log('INFO', 'Start processing workflow: project_slug=%s name=%s id=%s' \
+                        % (project_slug, workflow_name, workflow_id))
 
                     # add field workflow_time for _time
                     if workflow.get('stopped_at') is not None:
                         workflow['workflow_time'] = workflow.get('stopped_at')
                     else:
                         # set current time as %Y-%m-%dT%H:%M:%S.%2NZ
-                        workflow['workflow_time'] = now.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-4] + 'Z'
+#                        workflow['workflow_time'] = now.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-4] + 'Z'
+                        workflow['workflow_time'] = now.strftime('%Y-%m-%dT%H:%M:%S') + 'Z'
                     # Attach pipeline data at workflow
                     workflow['trigger'] = pipeline['trigger']
                     workflow['vcs'] = pipeline['vcs']
@@ -596,7 +600,7 @@ class CircleCIScript(Script):
 #                            continue
 
                         if job_number is None:
-                            ew.log('DEBUG', 'skip this job: project_slug=%s job_number=%s' \
+                            ew.log('WARN', 'skip this job: project_slug=%s job_number=%s' \
                                 % (project_slug, job_number))
                             continue
 
@@ -618,10 +622,12 @@ class CircleCIScript(Script):
 
                         # If status matches checkpoint's value, skip the following process
                         if job_status == job_checkpoint_status:
-                            ew.log('DEBUG', 'skip this job: project_slug=%s job_number=%s' \
-                                % (project_slug, job_number))
+                            ew.log('DEBUG', 'skip this job: project_slug=%s job_number=%s status=%s checkpoint_status=%s' \
+                                % (project_slug, job_number, job_status, job_checkpoint_status))
                             continue
 
+                        ew.log('INFO', 'Start processing job event: project_slug=%s build_num=%s' \
+                            % (project_slug, str(job_number)))
 
                         # Set sourcetype in event data
                         event.sourceType = 'circleci:job'
@@ -672,6 +678,7 @@ class CircleCIScript(Script):
                         job_event_data['build_url'] = job_detail.get('build_url')
                         job_event_data['branch'] = job_detail.get('branch')
                         job_event_data['status'] = job_detail.get('status')
+                        job_event_data['project_slug'] = project_slug
                         job_event_data['fail_reason'] = job_detail.get('fail_reason')
                         job_event_data['build_time_millis'] = job_detail.get('build_time_millis')
                         job_event_data['timedout'] = job_detail.get('timedout')
@@ -709,12 +716,6 @@ class CircleCIScript(Script):
                             ew.log('ERROR', e)
                             continue
 
-                        # Update job checkpoint
-                        job_checkpoint_data['status'] = job_detail.get('status')
-                        self.update_checkpoint(
-                            kvstore_collection=job_kvstore_collection, 
-                            checkpoint_data=job_checkpoint_data, 
-                            ew=ew)
 
 #                        try:
 #                            ew.log('DEBUG', 'Start updating kv store: %s' % build_checkpoint_data)
@@ -777,10 +778,18 @@ class CircleCIScript(Script):
                                         % (username, reponame, str(build_num), \
                                             action.get('allocation_id'), str(action.get('step'))))
                                     ew.log('ERROR', e)
+                                    continue
 
                                 ew.log('INFO', 'Finish processing step event: allocation_id=%s step=%s' \
                                     % (action.get('allocation_id'), str(action.get('step'))))
 
+
+                        # Update job checkpoint
+                        job_checkpoint_data['status'] = job_detail.get('status')
+                        self.update_checkpoint(
+                            kvstore_collection=job_kvstore_collection, 
+                            checkpoint_data=job_checkpoint_data, 
+                            ew=ew)
 
                         ew.log('INFO', 'Finish processing job event: username=%s reponame=%s build_num=%s' \
                             % (username, reponame, str(build_num)))
@@ -792,8 +801,8 @@ class CircleCIScript(Script):
                         checkpoint_data=workflow_checkpoint_data, 
                         ew=ew)
 
-                    ew.log('INFO', 'Finish processing workflow: project_slug=%s name=%s' \
-                        % (project_slug, workflow_name))
+                    ew.log('INFO', 'Finish processing workflow: project_slug=%s name=%s id=%s' \
+                        % (project_slug, workflow_name, workflow_id))
 
 #                # Update pipeline checkpoint
 #                pipeline_checkpoint_data['updated_at'] = updated_at

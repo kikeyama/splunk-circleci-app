@@ -75,7 +75,6 @@
         </search>
         <option name="drilldown">none</option>
         <option name="height">328</option>
-        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
         <option name="refresh.display">progressbar</option>
         <option name="underLabel">Total Workflows</option>
         <option name="useColors">0</option>
@@ -122,7 +121,7 @@
   <row>
     <panel>
       <title>Pipelines by Status</title>
-      <single>
+      <single id="status_success">
         <title>Success</title>
         <search>
           <query>`circleci_workflow_latest` 
@@ -133,12 +132,11 @@
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">none</option>
-        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
         <option name="refresh.display">progressbar</option>
         <option name="underLabel">Success Pipelines</option>
         <option name="useColors">0</option>
       </single>
-      <single>
+      <single id="status_failed">
         <title>Failed</title>
         <search>
           <query>`circleci_workflow_latest` 
@@ -149,12 +147,11 @@
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">none</option>
-        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
         <option name="refresh.display">progressbar</option>
         <option name="underLabel">Failed Pipelines</option>
         <option name="useColors">0</option>
       </single>
-      <single>
+      <single id="status_running">
         <title>Running</title>
         <search>
           <query>`circleci_workflow_latest` 
@@ -165,12 +162,11 @@
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">none</option>
-        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
         <option name="refresh.display">progressbar</option>
         <option name="underLabel">Running Pipelines</option>
         <option name="useColors">0</option>
       </single>
-      <single>
+      <single id="status_canceled">
         <title>Canceled</title>
         <search>
           <query>`circleci_workflow_latest` 
@@ -181,12 +177,11 @@
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">none</option>
-        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
         <option name="refresh.display">progressbar</option>
         <option name="underLabel">Canceled Pipelines</option>
         <option name="useColors">0</option>
       </single>
-      <single>
+      <single id="status_fixed">
         <title>Fixed</title>
         <search>
           <query>`circleci_workflow_latest` 
@@ -197,12 +192,11 @@
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">none</option>
-        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
         <option name="refresh.display">progressbar</option>
         <option name="underLabel">Fixed Pipelines</option>
         <option name="useColors">0</option>
       </single>
-      <single>
+      <single id="status_not_run">
         <title>Not Run</title>
         <search>
           <query>`circleci_workflow_latest` 
@@ -213,7 +207,6 @@
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="drilldown">none</option>
-        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
         <option name="refresh.display">progressbar</option>
         <option name="underLabel">Not Run Pipelines</option>
         <option name="useColors">0</option>
@@ -256,7 +249,7 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
         <format type="color" field="status">
-          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"canceled":#4F4F4F,"not_run":#7F7F7F}</colorPalette>
+          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"failing":#F2837F,"running":#0070C0,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B}</colorPalette>
         </format>
         <format type="number" field="pipeline_number">
           <option name="precision">0</option>
@@ -308,12 +301,12 @@
         <option name="charting.chart">column</option>
         <option name="charting.chart.stackMode">stacked</option>
         <option name="charting.drilldown">none</option>
-        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"running":0x0070C0,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
+        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"faining":0xF2837F,"running":0x0070C0,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
         <option name="height">349</option>
         <option name="refresh.display">progressbar</option>
       </chart>
       <html depends="$show_html$">
-        <h2>&lt;-- Select username/repository from the left table.</h2>
+        <h2>&lt;-- Select project to see workflow drilldown.</h2>
       </html>
     </panel>
   </row>

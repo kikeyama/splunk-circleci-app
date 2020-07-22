@@ -8,3 +8,33 @@
 	font-size: 500%;
 	font-weight: bold;
 }
+
+/* {"success":#039B4A,"failed":#F24646,"failing":#F2837F,"running":#0070C0,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B,"not_run":#7F7F7F} */
+#status_success* text {
+	color: #039B4A;
+}
+
+div[id^=status_success] text {
+	color: #039B4A;
+}
+
+#status_failed* text {
+	color: #F24646;
+}
+
+#status_running* text {
+	color: #0070C0;
+}
+
+#status_canceled* text {
+	color: #4F4F4F;
+}
+
+#status_not_run* text {
+	color: #7F7F7F;
+}
+
+#status_fixed* text {
+	color: #3D929B;
+}
+

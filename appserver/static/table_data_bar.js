@@ -18,4 +18,13 @@ require([
     mvc.Components.get('failed_projects_table').getVisualization(function(tableView) {
         tableView.addCellRenderer(new DataBarCellRenderer());
     });
+    mvc.Components.get('failed_workflows_table').getVisualization(function(tableView) {
+        tableView.addCellRenderer(new DataBarCellRenderer());
+    });
+    mvc.Components.get('failed_jobs_table').getVisualization(function(tableView) {
+        tableView.addCellRenderer(new DataBarCellRenderer());
+    });
+    mvc.Components.get('failed_steps_table').getVisualization(function(tableView) {
+        tableView.addCellRenderer(new DataBarCellRenderer());
+    });
 });

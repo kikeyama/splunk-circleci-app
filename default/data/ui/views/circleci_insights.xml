@@ -1,5 +1,11 @@
-<dashboard script="table_data_bar.js, table_image_embed.js, table_font_size.js" stylesheet="table_data_bar.css, table_image_embed.css">
+<dashboard script="table_data_bar.js, table_image_embed.js" stylesheet="table_data_bar.css, table_image_embed.css">
   <label>CircleCI Insights</label>
+  <init>
+    <set token="show_failed_workflow_html">true</set>
+    <set token="show_failed_job_html">true</set>
+    <set token="show_failed_step_html">true</set>
+    <set token="display_failed_project_slug">None</set>
+  </init>
   <row>
     <panel>
       <title>Most Frequently Triggered Project</title>
@@ -17,8 +23,6 @@
         <option name="colorMode">none</option>
         <option name="drilldown">none</option>
         <option name="numberPrecision">0</option>
-        <option name="rangeColors">["0x53a051", "0x0877a6", "0xf8be34", "0xf1813f", "0xdc4e41"]</option>
-        <option name="rangeValues">[0,30,70,100]</option>
         <option name="showSparkline">1</option>
         <option name="showTrendIndicator">1</option>
         <option name="trellis.enabled">0</option>
@@ -30,6 +34,28 @@
         <option name="useColors">0</option>
         <option name="useThousandSeparators">1</option>
       </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Status Statistics by Project</title>
+      <chart>
+        <search>
+          <query>`circleci_workflow_latest` 
+| chart count over project_slug by status 
+| addtotals 
+| sort - Total 
+| fields - Total</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"failing":0xF2837F,"running":0x0070C0,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
     </panel>
   </row>
   <row>
@@ -52,52 +78,6 @@
         <option name="wrap">true</option>
       </table>
     </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Status Statistics by Project</title>
-      <table>
-        <search>
-          <query>`circleci_workflow_latest` 
-| chart count as total count(eval(status="success")) as success count(eval(status="failed")) as failed count(eval(status="not_run")) as not_run count(eval(status="canceled")) as canceled sparkline by project_slug</query>
-          <earliest>0</earliest>
-          <latest></latest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="count">20</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">none</option>
-        <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
-    <panel>
-      <title>Failed Projects</title>
-      <table id="failed_projects_table">
-        <search>
-          <query>`circleci_workflow_latest` 
-| chart count(eval(status="failed")) as fails count as total by project_slug 
-| eval fail_rate = fails / total *100 
-| sort - fail_rate</query>
-          <earliest>0</earliest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="count">20</option>
-        <option name="dataOverlayMode">none</option>
-        <option name="drilldown">none</option>
-        <option name="percentagesRow">false</option>
-        <option name="rowNumbers">false</option>
-        <option name="totalsRow">false</option>
-        <option name="wrap">true</option>
-      </table>
-    </panel>
-  </row>
-  <row>
     <panel>
       <title>Top Triggering User at Each Project</title>
       <table id="top_trigger_users">
@@ -128,6 +108,140 @@
           <option name="unit">%</option>
         </format>
       </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title># of Failed Workflows by Project</title>
+      <table id="failed_projects_table">
+        <search>
+          <query>`circleci_workflow_latest` 
+| stats count as total count(eval(status="failed")) as failed by project_slug 
+| eval fail_rate = failed / total *100 
+| fields - total 
+| sort - fail_rate</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <drilldown>
+          <condition>
+            <set token="failed_project_slug">$row.project_slug$</set>
+            <set token="display_failed_project_slug">$row.project_slug$</set>
+            <unset token="show_failed_workflow_html"></unset>
+            <unset token="failed_workflow_name"></unset>
+            <set token="display_failed_workflow_name">None</set>
+            <set token="show_failed_job_html">true</set>
+            <unset token="failed_job_name"></unset>
+            <set token="display_failed_workflow_name">None</set>
+          </condition>
+        </drilldown>
+      </table>
+    </panel>
+    <panel>
+      <title>Failed Workflows: $display_failed_project_slug$</title>
+      <table id="failed_workflows_table" depends="$failed_project_slug$">
+        <search>
+          <query>`circleci_workflow_latest($failed_project_slug$)` 
+| rename name as workflow_name
+| stats count as total count(eval(status="failed")) as failed by workflow_name 
+| eval fail_rate = failed / total *100 
+| fields - total 
+| sort - fail_rate</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <drilldown>
+          <condition>
+            <set token="failed_workflow_name">$row.workflow_name$</set>
+            <set token="display_failed_workflow_name">$row.workflow_name$</set>
+            <unset token="show_failed_job_html"></unset>
+            <set token="display_failed_job_name">None</set>
+            <set token="show_failed_step_html">true</set>
+            <unset token="failed_job_name"></unset>
+          </condition>
+        </drilldown>
+      </table>
+      <html depends="$show_failed_workflow_html$">
+        <h2>&lt;-- Select project from the left table for further drilldown.</h2>
+      </html>
+    </panel>
+    <panel depends="$failed_project_slug$">
+      <title>Failed Jobs: $display_failed_workflow_name$</title>
+      <table id="failed_jobs_table" depends="$failed_workflow_name$">
+        <search>
+          <query>`circleci_build_from_workflow($failed_project_slug$)` 
+| search workflow_status=failed workflow_name="$failed_workflow_name$" 
+| rename workflows.job_name as job_name 
+| stats count as total count(eval(status="failed")) as failed by job_name 
+| eval fail_rate = failed / total *100 
+| fields - total 
+| sort - fail_rate</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <drilldown>
+          <condition>
+            <set token="failed_job_name">$row.job_name$</set>
+            <set token="display_failed_job_name">$row.job_name$</set>
+            <unset token="show_failed_step_html"></unset>
+          </condition>
+        </drilldown>
+      </table>
+      <html depends="$show_failed_job_html$">
+        <h2>&lt;-- Select workflow from the left table for further drilldown.</h2>
+      </html>
+    </panel>
+    <panel depends="$failed_workflow_name$">
+      <title>Failed Steps: $display_failed_job_name$</title>
+      <table id="failed_steps_table" depends="$failed_job_name$">
+        <search>
+          <query>`circleci_step_latest($failed_project_slug$)` 
+| search failed=true job_status=failed workflows.workflow_name="$failed_workflow_name$" job_name="$failed_job_name$" 
+| rename name as step_name 
+| stats count as total count(eval(status="failed")) as failed by step_name 
+| eval fail_rate = failed / total *100 
+| fields - total 
+| sort - fail_rate</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+      <html depends="$show_failed_step_html$">
+        <h2>&lt;-- Select job from the left table for further drilldown.</h2>
+      </html>
     </panel>
   </row>
   <row>
