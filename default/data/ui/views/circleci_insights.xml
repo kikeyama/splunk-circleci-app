@@ -1,10 +1,13 @@
 <dashboard script="table_data_bar.js, table_image_embed.js" stylesheet="table_data_bar.css, table_image_embed.css">
-  <label>CircleCI Insights</label>
+  <label>Insights</label>
   <init>
     <set token="show_failed_workflow_html">true</set>
     <set token="show_failed_job_html">true</set>
     <set token="show_failed_step_html">true</set>
     <set token="display_failed_project_slug">None</set>
+    <set token="perf_project_slug">*</set>
+    <set token="perf_workflow_name">*</set>
+    <set token="perf_job_name">*</set>
   </init>
   <row>
     <panel>
@@ -133,20 +136,24 @@
         <option name="wrap">true</option>
         <drilldown>
           <condition>
+            <!-- Show failed workflows table -->
             <set token="failed_project_slug">$row.project_slug$</set>
             <set token="display_failed_project_slug">$row.project_slug$</set>
             <unset token="show_failed_workflow_html"></unset>
+            <!-- Reset failed jobs table -->
             <unset token="failed_workflow_name"></unset>
             <set token="display_failed_workflow_name">None</set>
             <set token="show_failed_job_html">true</set>
-            <unset token="failed_job_name"></unset>
-            <set token="display_failed_workflow_name">None</set>
+            <!-- Duration statitics -->
+            <set token="perf_project_slug">$row.project_slug$</set>
+            <set token="perf_workflow_name">*</set>
+            <set token="perf_job_name">*</set>
           </condition>
         </drilldown>
       </table>
     </panel>
     <panel>
-      <title>Failed Workflows: $display_failed_project_slug$</title>
+      <title>Failed Workflows at $display_failed_project_slug$</title>
       <table id="failed_workflows_table" depends="$failed_project_slug$">
         <search>
           <query>`circleci_workflow_latest($failed_project_slug$)` 
@@ -168,12 +175,17 @@
         <option name="wrap">true</option>
         <drilldown>
           <condition>
+            <!-- Show failed jobs table -->
             <set token="failed_workflow_name">$row.workflow_name$</set>
             <set token="display_failed_workflow_name">$row.workflow_name$</set>
             <unset token="show_failed_job_html"></unset>
+            <!-- Reset failed steps table -->
             <set token="display_failed_job_name">None</set>
             <set token="show_failed_step_html">true</set>
             <unset token="failed_job_name"></unset>
+            <!-- Duration statitics -->
+            <set token="perf_workflow_name">$row.workflow_name$</set>
+            <set token="perf_job_name">*</set>
           </condition>
         </drilldown>
       </table>
@@ -182,7 +194,7 @@
       </html>
     </panel>
     <panel depends="$failed_project_slug$">
-      <title>Failed Jobs: $display_failed_workflow_name$</title>
+      <title>Failed Jobs at $display_failed_workflow_name$</title>
       <table id="failed_jobs_table" depends="$failed_workflow_name$">
         <search>
           <query>`circleci_build_from_workflow($failed_project_slug$)` 
@@ -208,6 +220,8 @@
             <set token="failed_job_name">$row.job_name$</set>
             <set token="display_failed_job_name">$row.job_name$</set>
             <unset token="show_failed_step_html"></unset>
+            <!-- Duration statitics -->
+            <set token="perf_job_name">$row.job_name$</set>
           </condition>
         </drilldown>
       </table>
@@ -216,7 +230,7 @@
       </html>
     </panel>
     <panel depends="$failed_workflow_name$">
-      <title>Failed Steps: $display_failed_job_name$</title>
+      <title>Failed Steps at $display_failed_job_name$</title>
       <table id="failed_steps_table" depends="$failed_job_name$">
         <search>
           <query>`circleci_step_latest($failed_project_slug$)` 
@@ -246,19 +260,51 @@
   </row>
   <row>
     <panel>
-      <title>Duration statistics per build job</title>
+      <title>Duration Statistics by Job</title>
       <table>
         <search>
-          <query>`circleci_build_from_workflow` 
-| search build_time_millis!=null 
-| stats max(build_time_millis) as max_millis p95(build_time_millis) as p95_millis median(build_time_millis) as median_millis min(build_time_millis) as min_millis count by project_slug workflows.job_name 
+          <query>`circleci_build_from_workflow($perf_project_slug$)` 
+| search build_time_millis!=null workflows.workflow_name="$perf_workflow_name$" workflows.job_name="$perf_job_name$" 
+| stats max(build_time_millis) as max_millis p95(build_time_millis) as p95_millis median(build_time_millis) as median_millis min(build_time_millis) as min_millis count by project_slug workflows.workflow_name workflows.job_name 
 | foreach *_millis 
     [eval &lt;&lt;FIELD&gt;&gt; = tostring(round(&lt;&lt;FIELD&gt;&gt;,0), "commas")]</query>
           <earliest>0</earliest>
           <latest></latest>
           <sampleRatio>1</sampleRatio>
         </search>
-        <option name="count">20</option>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>MTTR - Mean Time To Recovery</title>
+      <table>
+        <title>Mean of seconds since a job failed until next pipeline starts</title>
+        <search>
+          <query>`circleci_build_from_workflow` 
+| eval stop_timestamp = strptime(stop_time, "%Y-%m-%dT%H:%M:%S.%3NZ"), start_timestamp = strptime(start_time, "%Y-%m-%dT%H:%M:%S.%3NZ"), failed_timestamp = if(workflow_status="failed" AND status="failed", stop_timestamp, null) 
+| stats min(start_timestamp) as start_timestamp min(failed_timestamp) as failed_timestamp by pipeline_number project_slug workflow_status 
+| sort project_slug - pipeline_number
+| streamstats window=1 current=false last(start_timestamp) as next_start_timestamp by project_slug 
+| eval recovery_seconds = next_start_timestamp - failed_timestamp 
+| stats mean(recovery_seconds) as mttr by project_slug 
+| eventstats avg(mttr) as avg_mttr stdev(mttr) as stdev_mttr 
+| eval outlier = if(mttr &gt; avg_mttr + 2 * stdev_mttr, "too long to recover", null) 
+| fields - avg_mttr - stdev_mttr 
+| eval mttr = round(mttr, 3)</query>
+          <earliest>0</earliest>
+          <latest></latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">100</option>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">none</option>
         <option name="percentagesRow">false</option>

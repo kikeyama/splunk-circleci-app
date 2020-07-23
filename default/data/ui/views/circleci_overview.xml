@@ -230,6 +230,7 @@
           <query>`circleci_workflow_latest` 
 | search $organization$ 
 | eval time = strftime(_time, "%Y-%m-%d %H:%M:%S"), workflow_url="https://app.circleci.com/pipelines/" + project_slug + "/" + pipeline_number + "/workflows/" + id 
+| sort - _time 
 | table pipeline_number time project_slug name status workflow_url 
 | rename workflow_url as circleci_workflow 
 | head 10</query>
@@ -245,6 +246,7 @@
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">none</option>
         <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
@@ -261,7 +263,7 @@
   </row>
   <row>
     <panel id="top_10_most_frequent_workflows">
-      <title>Top 10 Most Frequent Workflows Projects</title>
+      <title>Top 10 # of Workflows by Project</title>
       <table>
         <search>
           <query>`circleci_workflow_latest` 
