@@ -424,7 +424,7 @@ class CircleCIScript(Script):
                 ew.log('DEBUG', 'start GET request workflows_endpoint=%s' % workflows_endpoint)
 
                 # HTTP Get Request
-                now = datetime.datetime.now()
+                now = datetime.datetime.utcnow()
                 workflows = self.get_list_api(url=workflows_endpoint, api_token=api_token, params=dict(), limit=None, ew=ew)
 #                resp_workflows = requests.get(workflows_endpoint, headers=headers)
 #
@@ -644,7 +644,7 @@ class CircleCIScript(Script):
                         event.sourceType = 'circleci:job'
 
                         # Set current time to set job_time
-                        now = datetime.datetime.now()
+                        now = datetime.datetime.utcnow()
 
                         # Returns full details for a single build. The response includes all of 
                         # the fields from the build summary.
