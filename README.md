@@ -69,7 +69,15 @@ Field | Description | Default
 ------|-------------|--------
 `name` | Input name you prefer (can be different from CircleCI API token name) | N/A
 `API Token` | API Token you copied at the previous step | N/A
+`Your VCS` | Version Control System (input `github` or `bitbucket`) | N/A
+`Organization name` | Organization name (example: `splunk` in `https://github.com/splunk/splunk-sdk-python`) | N/A
 `interval` | Interval (seconds) this app collects CircleCI data | 600
+
+
+### 4. Update Search Macro
+
+1. `Settings` > `Advanced search` then click `Search macros`
+2. Click `circleci_orb_index` and change index name (default: `main`)
 
 ## Troubleshooting
 
