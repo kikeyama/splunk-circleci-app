@@ -471,13 +471,18 @@ class CircleCIScript(Script):
                         ew=ew)
 
                     # Checkpoint definition
+                    write_workflow_to_splunk = True
                     workflow_checkpoint_status = workflow_checkpoint_data.get('status')
 
                     # If status matches checkpoint's value, skip the following process
                     if workflow_status == workflow_checkpoint_status:
-                        ew.log('DEBUG', 'skip this workflow: project_slug=%s workflow_name=%s status=%s checkpoint_status=%s' \
-                            % (project_slug, workflow_name, workflow_status, workflow_checkpoint_status))
-                        continue
+                        # If status is still running, don't skip but don't write to splunk
+                        if workflow_status == 'running':
+                            write_workflow_to_splunk == False
+                        else:
+                            ew.log('DEBUG', 'skip this workflow: project_slug=%s workflow_name=%s status=%s checkpoint_status=%s' \
+                                % (project_slug, workflow_name, workflow_status, workflow_checkpoint_status))
+                            continue
 
                     ew.log('INFO', 'Start processing workflow: project_slug=%s name=%s id=%s' \
                         % (project_slug, workflow_name, workflow_id))
@@ -509,16 +514,17 @@ class CircleCIScript(Script):
                     event.data = json.dumps(workflow)
 
                     # Write event data to Splunk
-                    try:
-                        ew.write_event(event)
-                        ew.log('DEBUG', 'Successfully write circleci workflow event: workflow_id=%s workflow_name=%s project_slug=%s' \
-                            % (workflow_id, workflow_name, project_slug))
+                    if write_workflow_to_splunk:
+                        try:
+                            ew.write_event(event)
+                            ew.log('DEBUG', 'Successfully write circleci workflow event: workflow_id=%s workflow_name=%s project_slug=%s' \
+                                % (workflow_id, workflow_name, project_slug))
 
-                    except Exception as e:
-                        ew.log('ERROR', 'Failed to write circleci workflow event: workflow_id=%s workflow_name=%s project_slug=%s' \
-                            % (workflow_id, workflow_name, project_slug))
-                        ew.log('ERROR', e)
-                        continue
+                        except Exception as e:
+                            ew.log('ERROR', 'Failed to write circleci workflow event: workflow_id=%s workflow_name=%s project_slug=%s' \
+                                % (workflow_id, workflow_name, project_slug))
+                            ew.log('ERROR', e)
+                            continue
 
                     # Get Jobs in a workflow
                     # /workflow/{id}/job
@@ -618,13 +624,18 @@ class CircleCIScript(Script):
                             ew=ew)
 
                         # Checkpoint definition
+                        write_job_to_splunk = True
                         job_checkpoint_status = job_checkpoint_data.get('status')
 
                         # If status matches checkpoint's value, skip the following process
                         if job_status == job_checkpoint_status:
-                            ew.log('DEBUG', 'skip this job: project_slug=%s job_number=%s status=%s checkpoint_status=%s' \
-                                % (project_slug, job_number, job_status, job_checkpoint_status))
-                            continue
+                            # If status is still running, don't skip but don't write to splunk
+                            if job_status == 'running':
+                                write_job_to_splunk == False
+                            else:
+                                ew.log('DEBUG', 'skip this job: project_slug=%s job_number=%s status=%s checkpoint_status=%s' \
+                                    % (project_slug, job_number, job_status, job_checkpoint_status))
+                                continue
 
                         ew.log('INFO', 'Start processing job event: project_slug=%s build_num=%s' \
                             % (project_slug, str(job_number)))
@@ -705,16 +716,17 @@ class CircleCIScript(Script):
                         event.data = json.dumps(job_event_data)
 
                         # Write event data to Splunk
-                        try:
-                            ew.write_event(event)
-                            ew.log('DEBUG', 'Successfully write circleci job event: username=%s reponame=%s build_num=%s' \
-                                % (username, reponame, str(build_num)))
+                        if write_job_to_splunk:
+                            try:
+                                ew.write_event(event)
+                                ew.log('DEBUG', 'Successfully write circleci job event: username=%s reponame=%s build_num=%s' \
+                                    % (username, reponame, str(build_num)))
 
-                        except Exception as e:
-                            ew.log('ERROR', 'Failed to write circleci job event: username=%s reponame=%s build_num=%s' \
-                                % (username, reponame, str(build_num)))
-                            ew.log('ERROR', e)
-                            continue
+                            except Exception as e:
+                                ew.log('ERROR', 'Failed to write circleci job event: username=%s reponame=%s build_num=%s' \
+                                    % (username, reponame, str(build_num)))
+                                ew.log('ERROR', e)
+                                continue
 
 
 #                        try:
