@@ -1,15 +1,154 @@
-[inputs/circleci%3A%2F%2Fkikeyama-api-token]
-version = 8.0.5
-modtime = 1594837261.437129000
+[props/circleci%3Aworkflow]
+export = system
 
 [props/circleci%3Ajob]
-export = system
-version = 8.0.5
-modtime = 1594742711.287622000
 export = system
 
 [props/circleci%3Astep]
 export = system
-version = 8.0.5
-modtime = 1594742731.421206000
+
+[props/circleci%3Abuild%3Aevent]
 export = system
+
+[props/circleci%3Aworkflow%3Aevent]
+export = system
+
+[eventtypes/circleci_workflow]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[eventtypes/circleci_build]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[eventtypes/circleci_step]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[workflow_actions/open_circleci_job]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[workflow_actions/open_circleci_workflow]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[workflow_actions/open_vcs_repository_build]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[workflow_actions/open_vcs_repository_workflow]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[savedsearches/CircleCI%20Modular%20Input%20Error]
+access = read : [ * ], write : [ admin, power ]
+export = none
+
+[savedsearches/CircleCI%20Failed%20Job%20Alert]
+access = read : [ * ], write : [ admin, power ]
+export = none
+
+[macros/circleci_build_sourcetype]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_index]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_step_sourcetype]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_orb_build_sourcetype]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_orb_index]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_orb_workflow_sourcetype]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_step_latest%284%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_build_latest]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_step_latest%283%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_step_latest%282%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_build_latest%282%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_build_latest%283%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_workflow_latest]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_workflow_sourcetype]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_workflow_latest%282%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_workflow_latest%283%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_workflow_latest%281%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_build_latest%284%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_build_from_workflow%282%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_build_from_workflow%281%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_step_latest]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_build_from_workflow]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_build_latest%281%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[macros/circleci_step_latest%281%29]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[nav/default]
+
+[views/circleci_overview]
+
+[views/circleci_insights]
+
+[views/circleci_monitor]

@@ -44,7 +44,7 @@ require([
             $container.append(this._inlineTableView.render().el);
         }
     });
-    var tableElement = mvc.Components.getInstance("expand_with_events");
+    var tableElement = mvc.Components.getInstance("workflows_table");
     tableElement.getVisualization(function(tableView) {
         // Add custom cell renderer, the table will re-render automatically.
         tableView.addRowExpansionRenderer(new EventSearchBasedRowExpansionRenderer());

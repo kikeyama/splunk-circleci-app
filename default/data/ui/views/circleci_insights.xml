@@ -1,5 +1,6 @@
 <dashboard script="table_data_bar.js, table_image_embed.js" stylesheet="table_data_bar.css, table_image_embed.css">
   <label>Insights</label>
+  <description>Statistics and analysis over past 30 days</description>
   <init>
     <set token="show_failed_workflow_html">true</set>
     <set token="show_failed_job_html">true</set>
@@ -11,36 +12,6 @@
   </init>
   <row>
     <panel>
-      <title>Most Frequently Triggered Project</title>
-      <single>
-        <search>
-          <query>`circleci_workflow_latest` 
-| stats dc(pipeline_id) as pipelines by project_slug 
-| sort - pipelines 
-| head 1 
-| fields project_slug</query>
-          <earliest>0</earliest>
-          <sampleRatio>1</sampleRatio>
-        </search>
-        <option name="colorBy">value</option>
-        <option name="colorMode">none</option>
-        <option name="drilldown">none</option>
-        <option name="numberPrecision">0</option>
-        <option name="showSparkline">1</option>
-        <option name="showTrendIndicator">1</option>
-        <option name="trellis.enabled">0</option>
-        <option name="trellis.scales.shared">1</option>
-        <option name="trellis.size">medium</option>
-        <option name="trendColorInterpretation">standard</option>
-        <option name="trendDisplayMode">absolute</option>
-        <option name="unitPosition">after</option>
-        <option name="useColors">0</option>
-        <option name="useThousandSeparators">1</option>
-      </single>
-    </panel>
-  </row>
-  <row>
-    <panel>
       <title>Status Statistics by Project</title>
       <chart>
         <search>
@@ -49,44 +20,76 @@
 | addtotals 
 | sort - Total 
 | fields - Total</query>
-          <earliest>0</earliest>
-          <latest></latest>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="charting.chart">bar</option>
         <option name="charting.chart.stackMode">stacked</option>
         <option name="charting.drilldown">none</option>
-        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"failing":0xF2837F,"running":0x0070C0,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
+        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"failing":0xF2837F,"running":0x0070C0,"on_hold":0xAA80D1,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
         <option name="refresh.display">progressbar</option>
       </chart>
     </panel>
   </row>
   <row>
     <panel>
-      <title>Most Frequently Triggered Projects</title>
+      <title>Triggered Pipelines</title>
       <table id="most_frequently_triggered">
+        <title>Most Frequently Triggered Projects</title>
         <search>
           <query>`circleci_workflow_latest` 
-| stats dc(pipeline_id) as triggered_pipeline_count by project_slug 
-| sort - triggered_pipeline_count</query>
-          <earliest>0</earliest>
+| stats dc(pipeline_id) as pipelines by project_slug 
+| sort - pipelines</query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="count">20</option>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">none</option>
         <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
       </table>
-    </panel>
-    <panel>
-      <title>Top Triggering User at Each Project</title>
-      <table id="top_trigger_users">
+      <single>
+        <title>Trigger Type</title>
         <search>
           <query>`circleci_workflow_latest` 
-| stats count by project_slug trigger.actor.avatar_url trigger.actor.login 
+| stats dc(pipeline_number) as pipelines by trigger.type</query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="height">208</option>
+        <option name="numberPrecision">0</option>
+        <option name="rangeColors">["0x53a051","0x0877a6","0xf8be34","0xf1813f","0xdc4e41"]</option>
+        <option name="rangeValues">[0,30,70,100]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">large</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="unitPosition">after</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Users</title>
+      <table id="top_trigger_users">
+        <title>Top Triggering User on Each Project</title>
+        <search>
+          <query>`circleci_workflow_latest` 
+| stats dc(pipeline_number) as count by project_slug trigger.actor.avatar_url trigger.actor.login 
 | rename trigger.actor.avatar_url as avatar trigger.actor.login as user 
 | sort project_slug - count 
 | streamstats count as stream_count by project_slug 
@@ -94,15 +97,14 @@
 | search stream_count=1 
 | eval percent = round(count / total * 100, 0)
 | fields - stream_count - total</query>
-          <earliest>0</earliest>
-          <latest></latest>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="count">20</option>
         <option name="dataOverlayMode">none</option>
         <option name="drilldown">none</option>
         <option name="percentagesRow">false</option>
-        <option name="refresh.display">progressbar</option>
         <option name="rowNumbers">false</option>
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
@@ -123,8 +125,8 @@
 | eval fail_rate = failed / total *100 
 | fields - total 
 | sort - fail_rate</query>
-          <earliest>0</earliest>
-          <latest></latest>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="count">10</option>
@@ -162,8 +164,8 @@
 | eval fail_rate = failed / total *100 
 | fields - total 
 | sort - fail_rate</query>
-          <earliest>0</earliest>
-          <latest></latest>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="count">10</option>
@@ -204,8 +206,8 @@
 | eval fail_rate = failed / total *100 
 | fields - total 
 | sort - fail_rate</query>
-          <earliest>0</earliest>
-          <latest></latest>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="count">10</option>
@@ -240,8 +242,8 @@
 | eval fail_rate = failed / total *100 
 | fields - total 
 | sort - fail_rate</query>
-          <earliest>0</earliest>
-          <latest></latest>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="count">20</option>
@@ -268,8 +270,8 @@
 | stats max(build_time_millis) as max_millis p95(build_time_millis) as p95_millis median(build_time_millis) as median_millis min(build_time_millis) as min_millis count by project_slug workflows.workflow_name workflows.job_name 
 | foreach *_millis 
     [eval &lt;&lt;FIELD&gt;&gt; = tostring(round(&lt;&lt;FIELD&gt;&gt;,0), "commas")]</query>
-          <earliest>0</earliest>
-          <latest></latest>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="count">10</option>
@@ -299,9 +301,9 @@
 | eventstats avg(mttr) as avg_mttr stdev(mttr) as stdev_mttr 
 | eval outlier = if(mttr &gt; avg_mttr + 2 * stdev_mttr, "too long to recover", null) 
 | fields - avg_mttr - stdev_mttr 
-| eval mttr = round(mttr, 3)</query>
-          <earliest>0</earliest>
-          <latest></latest>
+| eval mttr = tostring(round(mttr, 3), "commas")</query>
+          <earliest>-30d@d</earliest>
+          <latest>now</latest>
           <sampleRatio>1</sampleRatio>
         </search>
         <option name="count">100</option>

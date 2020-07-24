@@ -3,13 +3,13 @@
 	margin: 40px;
 }
 
-.title_panel > div {
+.title_panel div {
 	vertical-align: middle;
 	font-size: 500%;
 	font-weight: bold;
 }
 
-/* {"success":#039B4A,"failed":#F24646,"failing":#F2837F,"running":#0070C0,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B,"not_run":#7F7F7F} */
+/* {"success":#039B4A,"failed":#F24646,"failing":#F2837F,"running":#0070C0,"on_hold":#AA80D1,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B,"not_run":#7F7F7F} */
 #status_success* text {
 	color: #039B4A;
 }
@@ -26,6 +26,10 @@ div[id^=status_success] text {
 	color: #0070C0;
 }
 
+#status_on_hold* text {
+	color: #AA80D1;
+}
+
 #status_canceled* text {
 	color: #4F4F4F;
 }
@@ -38,3 +42,31 @@ div[id^=status_success] text {
 	color: #3D929B;
 }
 
+.link_to_circleci {
+	text-align: center;
+	margin: 16px;
+}
+
+.link_to_circleci div {
+	vertical-align: middle;
+	font-size: 200%;
+}
+
+table.token_table th {
+	padding: 8px;
+	color: #ffffff;
+	background: #777777;
+}
+
+table.token_table td {
+	padding: 4px 8px;
+}
+
+table.token_table td:nth-child(1) {
+	width: 120px;
+	font-weight: bold;
+}
+
+table.token_table tr {
+	border: solid 1px #777777;
+}
