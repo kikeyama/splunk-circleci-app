@@ -4,4 +4,3 @@
 api_token = <value>
 vcs = <value>
 org = <value>
-interval = <value>

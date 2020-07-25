@@ -97,7 +97,7 @@
         </search>
       </input>
       <chart>
-        <title># Workflows by Organization</title>
+        <title># of Pipelines by Organization</title>
         <search>
           <query>`circleci_workflow_latest` 
 | search $organization$ status=$status$ 
@@ -303,7 +303,7 @@
       </table>
     </panel>
     <panel id="workflow_timechart_by_status">
-      <title># Workflows by Status at $display_project_slug$</title>
+      <title># of Workflows by Status at $display_project_slug$</title>
       <chart depends="$project_slug$">
         <search>
           <query>`circleci_workflow_latest($project_slug$)` 

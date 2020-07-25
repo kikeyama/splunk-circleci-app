@@ -54,25 +54,12 @@ class CircleCIScript(Script):
         # Otherwise, Splunk lets you specify a validation string for each argument
         # and will run validation internally using that string.
         scheme.use_external_validation = True
-        scheme.use_single_instance = True
 
         api_token_argument = Argument("api_token")
         api_token_argument.title = "API Token"
         api_token_argument.data_type = Argument.data_type_string
         api_token_argument.description = "CircleCI API Token"
         api_token_argument.required_on_create = True
-
-        interval_argument = Argument("interval")
-        interval_argument.title = "Interval"
-        interval_argument.data_type = Argument.data_type_string
-        interval_argument.description = "Interval to execute input script"
-        interval_argument.required_on_create = True
-
-        name_argument = Argument("name")
-        name_argument.title = "Name"
-        name_argument.data_type = Argument.data_type_string
-        name_argument.description = "Name of this input setting"
-        name_argument.required_on_create = True
 
         vcs_argument = Argument("vcs")
         vcs_argument.title = "Your VCS (Version Control System)"
@@ -90,8 +77,6 @@ class CircleCIScript(Script):
         #
         # scheme.validation = "api_token==xxxxxxxxxxxxxxx"
         scheme.add_argument(api_token_argument)
-        scheme.add_argument(interval_argument)
-        scheme.add_argument(name_argument)
         scheme.add_argument(vcs_argument)
         scheme.add_argument(org_argument)
 
