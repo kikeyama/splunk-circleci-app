@@ -20,7 +20,7 @@ require([
             });
         }
     });
-    mvc.Components.get('expand_with_events').getVisualization(function(tableView){
+    mvc.Components.get('workflows_table').getVisualization(function(tableView){
         // Register custom cell renderer, the table will re-render automatically
         tableView.addCellRenderer(new EmbedWorkflowUrl());
     });

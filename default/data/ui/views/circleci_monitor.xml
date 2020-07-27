@@ -1,0 +1,272 @@
+<form script="table_link_embed_job.js" stylesheet="circleci_dashboard.css">
+  <label>Workflow and Build Monitor</label>
+  <description>Monitor and drilldown workflows, build jobs, and steps</description>
+  <fieldset submitButton="false">
+    <input type="time" token="time">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="organization">
+      <label>Organization</label>
+      <choice value="*">ALL</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <fieldForLabel>username</fieldForLabel>
+      <fieldForValue>username</fieldForValue>
+      <search>
+        <query>`circleci_workflow_sourcetype` 
+| stats count by username</query>
+        <earliest>0</earliest>
+        <latest></latest>
+      </search>
+    </input>
+    <input type="dropdown" token="repository" searchWhenChanged="true">
+      <label>Repository</label>
+      <choice value="*">ALL</choice>
+      <default>*</default>
+      <initialValue>*</initialValue>
+      <fieldForLabel>reponame</fieldForLabel>
+      <fieldForValue>reponame</fieldForValue>
+      <search>
+        <query>`circleci_workflow_sourcetype` username="$organization$" 
+| stats count by reponame</query>
+        <earliest>0</earliest>
+        <latest></latest>
+      </search>
+    </input>
+  </fieldset>
+  <row>
+    <panel depends="$alwaysHideCSS$">
+      <html>
+        <style>
+          #workflows_by_status{
+            width:60% !important;
+          }
+          #event_notification{
+            width:40% !important;
+          }
+          #workflow_tokens_html{
+            width:35% !important;
+          }
+          #workflow_drilldown_details{
+            width:65% !important;
+          }
+        </style>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel id="workflows_by_status">
+      <title># of Workflows by Status</title>
+      <chart>
+        <search>
+          <query>`circleci_workflow_latest(*, $organization$, $repository$)` 
+| timechart count by status</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"faining":0xF2837F,"running":0x0070C0,"on_hold":0xAA80D1,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="height">355</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel id="event_notification">
+      <title>Event Notification from Orb</title>
+      <table>
+        <search>
+          <query>(`circleci_orb_build_sourcetype`) OR (`circleci_orb_workflow_sourcetype` ) username="$organization$" reponame="$repository$" 
+| eval time = strftime(timestamp, "%Y-%m-%d %H:%M:%S") 
+| table time subject status</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="status">
+          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"failing":#F2837F,"running":#0070C0,"on_hold":#AA80D1,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel id="recent_workflows">
+      <title>Recent Workflows</title>
+      <table id="workflows_table">
+        <search>
+          <query>`circleci_workflow_latest(*, $organization$, $repository$)` 
+| search $organization$ 
+| eval time = strftime(_time, "%Y-%m-%d %H:%M:%S") 
+| sort - _time 
+| table pipeline_number time project_slug name status id created_at stopped_at trigger.type trigger.actor.login vcs.branch vcs.commit.subject vcs.revision vcs.origin_repository_url vcs.provider_name</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="status">
+          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"failing":#F2837F,"running":#0070C0,"on_hold":#AA80D1,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B}</colorPalette>
+        </format>
+        <format type="number" field="pipeline_number">
+          <option name="precision">0</option>
+          <option name="unit">#</option>
+          <option name="unitPosition">before</option>
+        </format>
+        <fields>["pipeline_number","time","project_slug","name","status"]</fields>
+        <drilldown>
+          <set token="pipeline_number">$row.pipeline_number$</set>
+          <set token="project_slug">$row.project_slug$</set>
+          <set token="workflow_name">$row.name$</set>
+          <set token="workflow_status">$row.status$</set>
+          <set token="workflow_id">$row.id$</set>
+          <set token="created_at">$row.created_at$</set>
+          <set token="stopped_at">$row.stopped_at$</set>
+          <set token="trigger_type">$row.trigger.type$</set>
+          <set token="trigger_user">$row.trigger.actor.login$</set>
+          <set token="vcs_branch">$row.vcs.branch$</set>
+          <set token="vcs_commit">$row.vcs.commit.subject$</set>
+          <set token="vcs_revision">$row.vcs.revision$</set>
+          <set token="vcs_url">$row.vcs.origin_repository_url$</set>
+          <set token="vcs_provider">$row.vcs.provider_name$</set>
+        </drilldown>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel depends="$workflow_id$">
+      <html>
+        <div class="link_to_circleci">
+          <div>
+            <a href="https://app.circleci.com/pipelines/$project_slug$/$pipeline_number$/workflows/$workflow_id$" target="_blank">Open Workflow $project_slug$ - $workflow_name$ in CircleCI Console</a>
+          </div>
+        </div>
+      </html>
+    </panel>
+  </row>
+  <row>
+    <panel id="workflow_tokens_html" depends="$workflow_id$">
+      <title>Workflow Detaills</title>
+      <html>
+        <div>
+          <table class="token_table">
+            <tr>
+              <th>Field</th>
+              <th>Value</th>
+            </tr>
+            <tr>
+              <td>Pipeline Num</td>
+              <td>$pipeline_number$</td>
+            </tr>
+            <tr>
+              <td>Project</td>
+              <td>$project_slug$</td>
+            </tr>
+            <tr>
+              <td>Workflow Name</td>
+              <td>$workflow_name$</td>
+            </tr>
+            <tr>
+              <td>Workflow Status</td>
+              <td>$workflow_status$</td>
+            </tr>
+            <tr>
+              <td>Workflow ID</td>
+              <td>$workflow_id$</td>
+            </tr>
+            <tr>
+              <td>Created at</td>
+              <td>$created_at$</td>
+            </tr>
+            <tr>
+              <td>Stopped at</td>
+              <td>$stopped_at$</td>
+            </tr>
+            <tr>
+              <td>Trigger Type</td>
+              <td>$trigger_type$</td>
+            </tr>
+            <tr>
+              <td>Triggered by</td>
+              <td>$trigger_user$</td>
+            </tr>
+            <tr>
+              <td>Branch</td>
+              <td>$vcs_branch$</td>
+            </tr>
+            <tr>
+              <td>Commit</td>
+              <td>$vcs_commit$</td>
+            </tr>
+            <tr>
+              <td>Repository</td>
+              <td>$vcs_revision$</td>
+            </tr>
+            <tr>
+              <td>vcs_url</td>
+              <td>
+                <a href="$vcs_url$" target="_blank">Open in $vcs_provider$</a>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </html>
+    </panel>
+    <panel id="workflow_drilldown_details" depends="$workflow_id$">
+      <title>Build Drilldown at Project: $project_slug$ Workflow: $workflow_name$</title>
+      <table id="drilldown_table">
+        <search>
+          <query>`circleci_build_latest(*, $organization$, $repository$)` 
+| search workflows.workflow_id="$workflow_id$" 
+| eval time = strftime(_time, "%Y-%m-%d %H:%M:%S.%3N"), time_millis = tostring(build_time_millis, "commas") 
+| rename workflows.job_name as job_name workflows.job_id as job_id build_url as step_name 
+| table time job_name step_name status time_millis job_id 
+| union 
+    [search `circleci_step_latest(*, $organization$, $repository$)` 
+    | search workflows.workflow_id="$workflow_id$" 
+    | eval time = strftime(_time, "%Y-%m-%d %H:%M:%S.%3N"), time_millis = tostring(run_time_millis, "commas") 
+    | rename name as step_name 
+    | sort allocation_id step 
+    | table time step_name status time_millis job_id] 
+| sort job_id 
+| fields time job_name step_name status time_millis</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="count">20</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">none</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+        <format type="color" field="status">
+          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"failing":#F2837F,"running":#0070C0,"on_hold":#AA80D1,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B}</colorPalette>
+        </format>
+      </table>
+    </panel>
+  </row>
+</form>

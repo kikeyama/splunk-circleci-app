@@ -1,7 +1,7 @@
-<nav search_view="search" color="#5CC05C">
+<nav search_view="search" color="#161616">
   <view name="circleci_overview"  default="true" />
   <view name="circleci_insights" />
-  <view name="search" />
+  <view name="circleci_monitor" />
   <view name="alerts" />
-  <view name="analytics_workspace" />
+  <view name="search" />
 </nav>
