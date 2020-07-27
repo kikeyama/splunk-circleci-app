@@ -4,3 +4,4 @@
 api_token = <value>
 vcs = <value>
 org = <value>
+python.version = python3

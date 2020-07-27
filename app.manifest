@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "2.0.0", 
+  "info": {
+    "title": "App for CircleCI", 
+    "id": {
+      "group": null, 
+      "name": "circleci", 
+      "version": "0.1.0"
+    }, 
+    "author": [
+      {
+        "name": "Kunihiko Ikeyama", 
+        "email": "kikeyama@splunk.com",
+        "company": "Splunk"
+      }
+    ],
+    "releaseDate": null,
+    "description": "Streams and visualize CircleCI workflows, jobs, and steps.", 
+    "classification": {
+      "intendedAudience": "DevOps",
+      "categories": ["DevOps"],
+      "developmentStatus": "Beta"
+    }, 
+    "commonInformationModels": null, 
+    "license": {
+      "name": null,
+      "text": null,
+      "uri": null
+    }, 
+    "privacyPolicy": {
+      "name": null,
+      "text": null,
+      "uri": null
+    }, 
+    "releaseNotes": {
+      "name": "CHANGELOG", 
+      "text": "CHANGELOG.md",
+      "uri": "https://github.com/kikeyama/splunk-circleci-app/blob/master/CHANGELOG.md"
+    }
+  }, 
+  "dependencies": null,
+  "tasks": null,
+  "inputGroups": null,
+  "incompatibleApps": null,
+  "supportedDeployments": [
+    "_standalone",
+    "_distributed"
+  ],
+  "targetWorkloads": null
+}

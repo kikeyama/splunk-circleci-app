@@ -13,6 +13,18 @@ export = system
 [props/circleci%3Aworkflow%3Aevent]
 export = system
 
+[props/circleci%3Ajob/EVAL-build_url_no_scheme]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[props/circleci%3Ajob/EVAL-vcs_url_no_scheme]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
+[props/circleci%3Aworkflow/EVAL-vcs_url_no_scheme]
+access = read : [ * ], write : [ admin, power ]
+export = system
+
 [eventtypes/circleci_workflow]
 access = read : [ * ], write : [ admin, power ]
 export = system
