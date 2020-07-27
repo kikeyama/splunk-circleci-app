@@ -181,7 +181,7 @@ class CircleCIScript(Script):
 
         # If not success in API request
         if r.status_code != 200:
-            ew.log('WARN', 'status code is not 200 at %s' % url)
+            ew.log('WARN', 'status code is %s at %s' % (str(r.status_code), url))
         else:
             ew.log('INFO', 'Success url=%s params=%s' % (url, json.dumps(params)))
 

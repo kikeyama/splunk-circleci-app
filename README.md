@@ -15,6 +15,8 @@ Collect and visualize workflows, jobs, and steps data from CircleCI cloud
 
 ### CircleCI Insights
 
+Visualizing statistics and analytics for past 30 days.
+
 - Status statistics by project
 - Pipeline trigger types
 - Triggered users
@@ -29,6 +31,15 @@ Collect and visualize workflows, jobs, and steps data from CircleCI cloud
 - Event notification from [orb](https://circleci.com/orbs/registry/orb/kikeyama/splunk)
 - Workflow details and drilldown to jobs and steps
 - Open CircleCI console (workflow and job)
+
+## Alerts
+
+There are some built-in alert templates. Update notification like email, slack, etc.
+
+Name | Description | Default Interval | Default Actions
+-----|-------------|------------------|----------------
+**CircleCI Failed Job Alert** | Searches `failed` status from CircleCI jobs for past 15 min | 10 min | Indexes as log event at `main` index
+**CircleCI Modular Input Error** | Searches `ERROR` log_level from _internal logs for past 15 min | 10 min | Indexes as log event at `main` index
 
 ## Data
 
@@ -48,12 +59,24 @@ Source Types | Description | Data source
 
 1. Clone or download this repository at `$SPLUNK_HOME/etc/apps` (`$SPLUNK_HOME` is the directory where you installed Splunk)
 2. Rename the repo directory to `circleci`
+3. Restart Splunk
 
-#### Splunk distributed or cluster
+#### Splunk distributed
 
 1. Install and setup Heavy Forwarder in any host (EC2 instance, your baremetal server, or VM, etc)
-2. Clone or download then rename the directory this repo at Search Heads, Indexers, and Heavy Forwarder 
+2. Clone or download then rename the directory this repo at Search Heads, Indexers, and Heavy Forwarder
+3. Restart each Splunk instance
 
+#### Splunk cluster
+
+1. Install and setup Heavy Forwarder in any host (EC2 instance, your baremetal server, or VM, etc)
+2. Clone or download then rename the directory this repo at Cluster Master, Deployer, and Heavy Forwarder (or Deployment Server)
+
+See [App deployment overview - Splunk Documentation](https://docs.splunk.com/Documentation/Splunk/latest/Admin/Deployappsandadd-ons) for more details.
+
+#### Splunk Cloud
+
+WIP
 
 ### 2. Get your API Token at CircleCI
 
@@ -71,7 +94,17 @@ Field | Description | Default
 `API Token` | API Token you copied at the previous step | N/A
 `Your VCS` | Version Control System (input `github` or `bitbucket`) | N/A
 `Organization name` | Organization name (example: `splunk` in `https://github.com/splunk/splunk-sdk-python`) | N/A
-`interval` | Interval (seconds) this app collects CircleCI data | 600
+
+__Optional Settings__
+
+Click `More settings` and display optional settings.
+
+Field | Description | Default
+------|-------------|--------
+`Interval` | Interval (seconds) this app collects CircleCI data | `600`
+`Source type` | Source type is defined in modular input. Can not overwrite. | `Automatic`
+`Host` | Host is defined in modular input. Can not overwrite. | SPLUNK HOST
+`Index` | Set index name where CircleCI workflows, jobs, and steps data. | `default`
 
 
 ### 4. Update Search Macro
