@@ -1,0 +1,105 @@
+version: 2.1
+jobs:
+  validate_package_appinspect:
+    docker:
+      # specify the version you desire here
+      - image: circleci/python:3
+
+    working_directory: ~/
+
+    steps:
+      # Slack
+      - slack/notify:
+          channel: C015JGRS4VA
+          color: '#42e2f4'
+          mentions: 'U23ACBMB5,U7CCVF98S'
+          message: ビルド開始するで
+          webhook: ${SLACK_WEBHOOK}
+
+      - run:
+          name: mkdir
+          command: |
+            mkdir ~/circleci
+
+      - checkout:
+          path: ~/circleci
+
+      - run:
+          name: remove unpackaged files
+          command: |
+            rm -r -f ~/circleci/.circleci
+            rm -r -f ~/circleci/.git
+            rm -r -f ~/circleci/img
+            rm -r -f ~/circleci/local
+            rm -f ~/circleci/.gitignore
+            rm -f ~/circleci/CHANGELOG.md
+
+      - run:
+          name: setup virtualenv
+          command: |
+            wget https://download.splunk.com/misc/packaging-toolkit/splunk-packaging-toolkit-1.0.1.tar.gz \
+              -O splunk-packaging-toolkit.tar.gz
+            pip3 install virtualenv
+            mkdir ~/virtualenv
+            cd ~/virtualenv
+            virtualenv slim
+            cd slim
+            source bin/activate
+            pip3 install semantic_version
+            pip3 install splunk-packaging-toolkit.tar.gz
+            PYTHON_HOME=~/virtualenv/slim
+            PATH="${PYTHON_HOME}/bin:$PATH"
+
+      - run:
+          name: validate app
+          command: |
+            slim validate ~/circleci > ~/circleci_validate.txt
+
+      - store_test_results:
+          path: ~/circleci_validate.txt
+
+      - run:
+          name: package app
+          command: |
+            slim package -o ~/ ~/circleci
+            echo 'export PACKAGE_FILE=`ls ~/circleci-*.tar.gz`' >> $BASH_ENV
+
+      - store_artifacts:
+          path: $PACKAGE_FILE
+
+      # Slack
+      - slack/status:
+          #fail_only: true
+          mentions: 'U23ACBMB5,U7CCVF98S'
+          only_for_branches: master
+          webhook: ${SLACK_WEBHOOK}
+
+      # Splunk
+      - splunk/build-event:
+          subject: notificatoin from build job
+          message: Successfully finished build
+          splunk_hec_host: '${SPLUNK_HEC_HOST}'
+          splunk_hec_port: 8088
+          splunk_hec_protocol: http
+          splunk_hec_token: '${SPLUNK_HEC_TOKEN}'
+          splunk_index: circleci
+
+orbs:
+  slack: circleci/slack@3.4.2
+  signalfx: kikeyama/signalfx@0.1.1
+  splunk: kikeyama/splunk@0.1.0
+
+workflows:
+  main:
+    jobs:
+      - validate_package_appinspect:
+      - splunk/workflow-event:
+          subject: notificatoin from main workflow
+          message: Successfully finisheed deploying to my cluster
+          splunk_hec_host: '${SPLUNK_HEC_HOST}'
+          splunk_hec_port: 8088
+          splunk_hec_protocol: http
+          splunk_hec_token: '${SPLUNK_HEC_TOKEN}'
+          splunk_index: circleci
+          requires:
+            - validate_package_appinspect
