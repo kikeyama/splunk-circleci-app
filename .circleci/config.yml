@@ -67,6 +67,38 @@ jobs:
       - store_artifacts:
           path: $PACKAGE_FILE
 
+      - run:
+          name: get appinspect token
+          command: |
+            echo 'export APPINSPECT_TOKEN=`curl -X GET \
+            -u $SPLUNKCOM_USER:$SPLUNKCOM_PASSWORD \
+            --url "https://api.splunk.com/2.0/rest/login/splunk" | jq ".data.token"`' >> $BASH_ENV
+
+      - run:
+          name: submit an app validation
+          command: |
+            curl -X POST \
+            -H "Authorization: bearer $APPINSPECT_TOKEN" \
+            -H "Cache-Control: no-cache" \
+            -F "app_package=@\"$PACKAGE_FILE\"" \
+            --url "https://appinspect.splunk.com/v1/app/validate" > ~/circleci_appinspect.json
+
+      - store_test_results:
+          path: ~/circleci_appinspect.json
+
+      - run:
+          name: submit an app cloud validation
+          command: |
+            curl -X POST \
+            -H "Authorization: bearer $APPINSPECT_TOKEN" \
+            -H "Cache-Control: no-cache" \
+            -F "app_package=@\"$PACKAGE_FILE\"" \
+            -F "included_tags=cloud" \
+            --url "https://appinspect.splunk.com/v1/app/validate" > ~/circleci_appinspect_cloud.json
+
+      - store_test_results:
+          path: ~/circleci_appinspect_cloud.json
+
       # Slack
       - slack/status:
           #fail_only: true
