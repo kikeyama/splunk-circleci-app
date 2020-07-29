@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  build:
+  validate_package_appinspect:
     docker:
       # specify the version you desire here
       - image: circleci/python:3
@@ -122,7 +122,7 @@ orbs:
 workflows:
   main:
     jobs:
-      - build
+      - validate_package_appinspect
       - splunk/workflow-event:
           subject: notificatoin from main workflow
           message: Successfully finisheed deploying to my cluster
@@ -132,4 +132,4 @@ workflows:
           splunk_hec_token: '${SPLUNK_HEC_TOKEN}'
           splunk_index: circleci
           requires:
-            - build
+            - validate_package_appinspect

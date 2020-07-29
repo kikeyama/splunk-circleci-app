@@ -134,7 +134,7 @@
           <option name="unit">#</option>
           <option name="unitPosition">before</option>
         </format>
-        <fields>["pipeline_number","time","project_slug","name","status"]</fields>
+        <fields>["pipeline_number","time","project_slug","name","trigger.type","status"]</fields>
         <drilldown>
           <set token="pipeline_number">$row.pipeline_number$</set>
           <set token="project_slug">$row.project_slug$</set>
