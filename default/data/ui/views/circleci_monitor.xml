@@ -72,7 +72,7 @@
         <option name="charting.chart">column</option>
         <option name="charting.chart.stackMode">stacked</option>
         <option name="charting.drilldown">none</option>
-        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"failing":0xF28F22,"running":0x0070C0,"on_hold":0xAA80D1,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
+        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"failing":0xF2837F,"running":0x0070C0,"on_hold":0xAA80D1,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
         <option name="charting.legend.placement">bottom</option>
         <option name="charting.lineWidth">2</option>
         <option name="height">355</option>
@@ -99,7 +99,7 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
         <format type="color" field="status">
-          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"failing":#F28F22,"running":#0070C0,"on_hold":#AA80D1,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B}</colorPalette>
+          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"failing":#F2837F,"running":#0070C0,"on_hold":#AA80D1,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B}</colorPalette>
         </format>
       </table>
     </panel>
@@ -127,7 +127,7 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
         <format type="color" field="status">
-          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"failing":#F28F22,"running":#0070C0,"on_hold":#AA80D1,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B}</colorPalette>
+          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"failing":#F2837F,"running":#0070C0,"on_hold":#AA80D1,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B}</colorPalette>
         </format>
         <format type="number" field="pipeline_number">
           <option name="precision">0</option>
@@ -262,7 +262,7 @@
         <option name="totalsRow">false</option>
         <option name="wrap">true</option>
         <format type="color" field="status">
-          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"failing":#F28F22,"running":#0070C0,"on_hold":#AA80D1,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B}</colorPalette>
+          <colorPalette type="map">{"success":#039B4A,"failed":#F24646,"failing":#F2837F,"running":#0070C0,"on_hold":#AA80D1,"canceled":#4F4F4F,"not_run":#7F7F7F,"fixed":#3D929B}</colorPalette>
         </format>
       </table>
     </panel>
