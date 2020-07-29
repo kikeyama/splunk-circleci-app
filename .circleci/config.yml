@@ -62,7 +62,7 @@ jobs:
           name: package app
           command: |
             slim package -o ~/ ~/circleci
-            echo 'export PACKAGE_FILE=`ls ~/circleci-*.tar.gz`' >> $BASH_ENV
+            echo "export PACKAGE_FILE=`ls ~/circleci-*.tar.gz`" >> $BASH_ENV
 
       - store_artifacts:
           path: $PACKAGE_FILE
@@ -70,9 +70,9 @@ jobs:
       - run:
           name: get appinspect token
           command: |
-            echo 'export APPINSPECT_TOKEN=`curl -X GET \
+            echo "export APPINSPECT_TOKEN=`curl -X GET \
             -u $SPLUNKCOM_USER:$SPLUNKCOM_PASSWORD \
-            --url "https://api.splunk.com/2.0/rest/login/splunk" | jq ".data.token"`' >> $BASH_ENV
+            --url "https://api.splunk.com/2.0/rest/login/splunk" | jq \".data.token\"`" >> $BASH_ENV
 
       - run:
           name: submit an app validation
