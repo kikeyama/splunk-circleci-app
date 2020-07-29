@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  validate_package_appinspect:
+  build:
     docker:
       # specify the version you desire here
       - image: circleci/python:3
@@ -20,6 +20,7 @@ jobs:
           name: mkdir
           command: |
             mkdir ~/circleci
+            mkdir ~/package
 
       - checkout:
           path: ~/circleci
@@ -53,19 +54,16 @@ jobs:
       - run:
           name: validate app
           command: |
-            slim validate ~/circleci > ~/circleci_validate.txt
-
-      - store_artifacts:
-          path: ~/circleci_validate.txt
+            slim validate ~/circleci
 
       - run:
           name: package app
           command: |
-            slim package -o ~/ ~/circleci
-            echo "export PACKAGE_FILE=`ls ~/circleci-*.tar.gz`" >> $BASH_ENV
+            slim package -o ~/package/ ~/circleci
+            echo "export PACKAGE_FILE=`ls ~/package/circleci-*.tar.gz`" >> $BASH_ENV
 
       - store_artifacts:
-          path: $PACKAGE_FILE
+          path: ~/package
 
       - run:
           name: get appinspect token
@@ -124,7 +122,7 @@ orbs:
 workflows:
   main:
     jobs:
-      - validate_package_appinspect
+      - build
       - splunk/workflow-event:
           subject: notificatoin from main workflow
           message: Successfully finisheed deploying to my cluster
@@ -134,4 +132,4 @@ workflows:
           splunk_hec_token: '${SPLUNK_HEC_TOKEN}'
           splunk_index: circleci
           requires:
-            - validate_package_appinspect
+            - build
