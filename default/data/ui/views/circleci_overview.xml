@@ -166,6 +166,21 @@
         <option name="underLabel">Running Pipelines</option>
         <option name="useColors">0</option>
       </single>
+      <single id="status_failing">
+        <title>Failing</title>
+        <search>
+          <query>`circleci_workflow_latest` 
+| search $organization$ status=failing 
+| stats dc(pipeline_id) as pipelines</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="underLabel">Failing Pipelines</option>
+        <option name="useColors">0</option>
+      </single>
       <single id="status_on_hold">
         <title>On Hold</title>
         <search>
