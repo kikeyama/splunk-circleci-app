@@ -37,8 +37,6 @@ jobs:
       - run:
           name: setup virtualenv
           command: |
-            wget https://download.splunk.com/misc/packaging-toolkit/splunk-packaging-toolkit-1.0.1.tar.gz \
-              -O splunk-packaging-toolkit.tar.gz
             pip3 install virtualenv
             mkdir ~/virtualenv
             cd ~/virtualenv
@@ -46,6 +44,8 @@ jobs:
             cd slim
             source bin/activate
             pip3 install semantic_version
+            wget https://download.splunk.com/misc/packaging-toolkit/splunk-packaging-toolkit-1.0.1.tar.gz \
+              -O splunk-packaging-toolkit.tar.gz
             pip3 install splunk-packaging-toolkit.tar.gz
             PYTHON_HOME=~/virtualenv/slim
             PATH="${PYTHON_HOME}/bin:$PATH"

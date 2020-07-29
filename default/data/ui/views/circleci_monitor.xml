@@ -246,6 +246,7 @@
     | search workflows.workflow_id="$workflow_id$" 
     | eval time = strftime(_time, "%Y-%m-%d %H:%M:%S.%3N"), time_millis = tostring(run_time_millis, "commas") 
     | rename name as step_name 
+    | fields - job_name 
     | sort allocation_id step] 
 | sort job_id 
 | table time job_name step_name status time_millis</query>
