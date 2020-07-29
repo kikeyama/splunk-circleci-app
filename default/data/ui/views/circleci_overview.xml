@@ -166,6 +166,21 @@
         <option name="underLabel">Running Pipelines</option>
         <option name="useColors">0</option>
       </single>
+      <single id="status_failing">
+        <title>Failing</title>
+        <search>
+          <query>`circleci_workflow_latest` 
+| search $organization$ status=failing 
+| stats dc(pipeline_id) as pipelines</query>
+          <earliest>$time.earliest$</earliest>
+          <latest>$time.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="underLabel">Failing Pipelines</option>
+        <option name="useColors">0</option>
+      </single>
       <single id="status_on_hold">
         <title>On Hold</title>
         <search>
@@ -314,7 +329,7 @@
         <option name="charting.chart">column</option>
         <option name="charting.chart.stackMode">stacked</option>
         <option name="charting.drilldown">none</option>
-        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"faining":0xF2837F,"running":0x0070C0,"on_hold":0xAA80D1,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
+        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"failing":0xF2837F,"running":0x0070C0,"on_hold":0xAA80D1,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
         <option name="height">349</option>
         <option name="refresh.display">progressbar</option>
       </chart>

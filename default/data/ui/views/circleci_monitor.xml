@@ -72,7 +72,7 @@
         <option name="charting.chart">column</option>
         <option name="charting.chart.stackMode">stacked</option>
         <option name="charting.drilldown">none</option>
-        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"faining":0xF2837F,"running":0x0070C0,"on_hold":0xAA80D1,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
+        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"failing":0xF2837F,"running":0x0070C0,"on_hold":0xAA80D1,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
         <option name="charting.legend.placement">bottom</option>
         <option name="charting.lineWidth">2</option>
         <option name="height">355</option>
@@ -241,16 +241,14 @@
 | search workflows.workflow_id="$workflow_id$" 
 | eval time = strftime(_time, "%Y-%m-%d %H:%M:%S.%3N"), time_millis = tostring(build_time_millis, "commas") 
 | rename workflows.job_name as job_name workflows.job_id as job_id build_url as step_name 
-| table time job_name step_name status time_millis job_id 
 | union 
     [search `circleci_step_latest(*, $organization$, $repository$)` 
     | search workflows.workflow_id="$workflow_id$" 
     | eval time = strftime(_time, "%Y-%m-%d %H:%M:%S.%3N"), time_millis = tostring(run_time_millis, "commas") 
     | rename name as step_name 
-    | sort allocation_id step 
-    | table time step_name status time_millis job_id] 
+    | sort allocation_id step] 
 | sort job_id 
-| fields time job_name step_name status time_millis</query>
+| table time job_name step_name status time_millis</query>
           <earliest>$time.earliest$</earliest>
           <latest>$time.latest$</latest>
           <sampleRatio>1</sampleRatio>
