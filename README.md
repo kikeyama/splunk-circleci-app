@@ -1,6 +1,18 @@
+[![<kikeyama>](https://circleci.com/gh/kikeyama/splunk-circleci-app.svg?style=svg)](<LINK>)
+
 # Splunk App for CircleCI
 
 Collect and visualize workflows, jobs, and steps data from CircleCI cloud  
+  
+This app provides the following capabilities.  
+- Overview of your CircleCI pipelines
+- Monitor workflows, build jobs, and steps
+- Insights into your CircleCI pipelines and activities
+- Direct link to CircleCI console from dashboards and log events.
+  
+It collects raw data through CircleCI API via python-based modular input. You can specify repository organizations and interval to collect data. Once you setup data inputs, this app automatically collect data from your pipeline and visualize it with built-in dashboards.  
+  
+If you find issues or feature requests, feel free to open [issues](https://github.com/kikeyama/splunk-circleci-app/issues).  
 
 ## Dashboards
 
@@ -55,28 +67,21 @@ Source Types | Description | Data source
 
 ### 1. Install this app into your Splunk
 
-#### Splunk single instance
+If you install from splunkbase (Splunk official app repository), [visit and download here](https://splunkbase.splunk.com/app/5162/).  
+  
+You can also [download latest release](https://github.com/kikeyama/splunk-circleci-app/releases) and install by following steps below.  
+The release version syncs with that of published app in splunkbase. However, sometimes it may take a few days to publish the latest app at splunkbase. If you prefer install the latest one, [download from releases at this repository](https://github.com/kikeyama/splunk-circleci-app/releases).
 
-1. Clone or download this repository at `$SPLUNK_HOME/etc/apps` (`$SPLUNK_HOME` is the directory where you installed Splunk)
-2. Rename the repo directory to `circleci`
-3. Restart Splunk
+#### Splunk Enterprise
 
-#### Splunk distributed
+1. [Download latest release](https://github.com/kikeyama/splunk-circleci-app/releases) and extract contents at `$SPLUNK_HOME/etc/apps` (`$SPLUNK_HOME` is the directory where you installed Splunk)
+2. Restart Splunk
 
-1. Install and setup Heavy Forwarder in any host (EC2 instance, your baremetal server, or VM, etc)
-2. Clone or download then rename the directory this repo at Search Heads, Indexers, and Heavy Forwarder
-3. Restart each Splunk instance
-
-#### Splunk cluster
-
-1. Install and setup Heavy Forwarder in any host (EC2 instance, your baremetal server, or VM, etc)
-2. Clone or download then rename the directory this repo at Cluster Master, Deployer, and Heavy Forwarder (or Deployment Server)
-
-See [App deployment overview - Splunk Documentation](https://docs.splunk.com/Documentation/Splunk/latest/Admin/Deployappsandadd-ons) for more details.
+If you use distributed architecture or cluster, follow the official document to install app. See [App deployment overview - Splunk Documentation](https://docs.splunk.com/Documentation/Splunk/latest/Admin/Deployappsandadd-ons) for more details.
 
 #### Splunk Cloud
 
-WIP
+Install this app in Search Heads, Indexing Peers, and [IDM (Inputs Data Manager)](https://docs.splunk.com/Documentation/SplunkCloud/latest/Admin/IntroGDI), then enable modular input at IDM.
 
 ### 2. Get your API Token at CircleCI
 
@@ -134,4 +139,4 @@ curl -X DELETE -u <user>:<password> -k https://<splunk_hostname>:8089/servicesNS
 
 ## Open issues
 
-If you find issues or feature request, feel free to open [issues](https://github.com/kikeyama/splunk-circleci-app/issues).
+If you find issues or feature requests, feel free to open [issues](https://github.com/kikeyama/splunk-circleci-app/issues).

@@ -19,20 +19,20 @@ jobs:
       - run:
           name: mkdir
           command: |
-            mkdir ~/circleci
+            mkdir ~/circleci_app
             mkdir ~/package
 
       - checkout:
-          path: ~/circleci
+          path: ~/circleci_app
 
       - run:
           name: remove unpackaged files
           command: |
-            rm -r -f ~/circleci/.circleci
-            rm -r -f ~/circleci/.git
-            rm -r -f ~/circleci/img
-            rm -r -f ~/circleci/local
-            rm -f ~/circleci/.gitignore
+            rm -r -f ~/circleci_app/.circleci
+            rm -r -f ~/circleci_app/.git
+            rm -r -f ~/circleci_app/img
+            rm -r -f ~/circleci_app/local
+            rm -f ~/circleci_app/.gitignore
 
       - run:
           name: setup virtualenv
@@ -54,13 +54,13 @@ jobs:
       - run:
           name: validate app
           command: |
-            slim validate ~/circleci
+            slim validate ~/circleci_app
 
       - run:
           name: package app
           command: |
-            slim package -o ~/package/ ~/circleci
-            echo "export PACKAGE_FILE=`ls ~/package/circleci-*.tar.gz`" >> $BASH_ENV
+            slim package -o ~/package/ ~/circleci_app
+            echo "export PACKAGE_FILE=`ls ~/package/circleci_app-*.tar.gz`" >> $BASH_ENV
 
       - store_artifacts:
           path: ~/package
