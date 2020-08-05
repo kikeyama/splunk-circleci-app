@@ -110,7 +110,6 @@
       <table id="workflows_table">
         <search>
           <query>`circleci_workflow_latest(*, $organization$, $repository$)` 
-| search $organization$ 
 | eval time = strftime(_time, "%Y-%m-%d %H:%M:%S") 
 | sort - _time 
 | table pipeline_number time project_slug name status id created_at stopped_at trigger.type trigger.actor.login vcs.branch vcs.commit.subject vcs.revision vcs.origin_repository_url vcs.provider_name</query>
@@ -146,7 +145,7 @@
           <set token="trigger_type">$row.trigger.type$</set>
           <set token="trigger_user">$row.trigger.actor.login$</set>
           <set token="vcs_branch">$row.vcs.branch$</set>
-          <set token="vcs_commit">$row.vcs.commit.subject$</set>
+          <set token="vcs_commit_subject">$row.vcs.commit.subject$</set>
           <set token="vcs_revision">$row.vcs.revision$</set>
           <set token="vcs_url">$row.vcs.origin_repository_url$</set>
           <set token="vcs_provider">$row.vcs.provider_name$</set>
@@ -216,15 +215,15 @@
               <td>$vcs_branch$</td>
             </tr>
             <tr>
-              <td>Commit</td>
-              <td>$vcs_commit$</td>
+              <td>Commit Subject</td>
+              <td>$vcs_commit_subject$</td>
             </tr>
             <tr>
-              <td>Repository</td>
+              <td>Commit ID</td>
               <td>$vcs_revision$</td>
             </tr>
             <tr>
-              <td>vcs_url</td>
+              <td>$vcs_provider$</td>
               <td>
                 <a href="$vcs_url$" target="_blank">Open in $vcs_provider$</a>
               </td>

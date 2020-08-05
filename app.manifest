@@ -4,7 +4,7 @@
     "title": "App for CircleCI", 
     "id": {
       "group": null, 
-      "name": "circleci", 
+      "name": "circleci_app", 
       "version": "0.1.1"
     }, 
     "author": [
