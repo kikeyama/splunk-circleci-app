@@ -27,7 +27,7 @@
         <option name="charting.chart">bar</option>
         <option name="charting.chart.stackMode">stacked</option>
         <option name="charting.drilldown">none</option>
-        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"failing":0xF2837F,"running":0x0070C0,"on_hold":0xAA80D1,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
+        <option name="charting.fieldColors">{"success":0x039B4A,"failed":0xF24646,"failing":0xF2837F,"running":0x0070C0,"on_hold":0x8267E4,"canceled":0x4F4F4F,"fixed":0x3D929B,"not_run":0x7F7F7F}</option>
         <option name="refresh.display">progressbar</option>
       </chart>
     </panel>
